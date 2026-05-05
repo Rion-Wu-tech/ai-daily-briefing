@@ -151,7 +151,7 @@ MIT License
 ## 👤 作者
 
 **Rion Wu**
-- X/Twitter: [@你的推特]
+- X/Twitter: [@rionaifantasy]
 - GitHub: [@Rion-Wu-tech](https://github.com/Rion-Wu-tech)
 
 ## 🙏 致谢
