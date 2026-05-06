@@ -25,7 +25,41 @@ git clone https://github.com/Rion-Wu-tech/ai-daily-briefing.git daily-briefing
 # 在 Hermes 中直接说："给我今日早报"
 ```
 
-### 方式二：独立 Python 脚本
+### 方式二：使用 Claude Code 生成简报
+
+```bash
+# 手动运行
+claude --acp --stdio << 'EOF'
+Load the daily-briefing skill and generate today's briefing for Rion
+EOF
+
+# 或通过 Hermes cron 定时运行（每天早上 8:30）
+hermes cron create \
+  --schedule "30 8 * * *" \
+  --prompt "Load daily-briefing skill and generate today's briefing" \
+  --acp-command claude \
+  --acp-args "--acp,--stdio" \
+  --deliver telegram
+```
+
+### 方式三：使用 Codex 生成简报
+
+```bash
+# 手动运行
+codex --acp --stdio << 'EOF'
+Load the daily-briefing skill and generate today's briefing for Rion
+EOF
+
+# 或通过 Hermes cron 定时运行（每天早上 8:30）
+hermes cron create \
+  --schedule "30 8 * * *" \
+  --prompt "Load daily-briefing skill and generate today's briefing" \
+  --acp-command codex \
+  --acp-args "--acp,--stdio" \
+  --deliver telegram
+```
+
+### 方式四：独立 Python 脚本
 
 ```bash
 # 克隆仓库
@@ -38,6 +72,8 @@ pip install -r requirements.txt
 # 运行
 python briefing.py
 ```
+
+> 💡 **更多运行方案**：查看 [DAILY_BRIEFING_SETUP.md](./DAILY_BRIEFING_SETUP.md) 了解完整的 Codex、Claude Code、混合方案等详细配置
 
 ## 📋 输出示例
 
