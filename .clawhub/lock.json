@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "openclaw-skill-vetter": {
+      "version": "1.0.0",
+      "installedAt": 1775465268190
+    },
+    "social-media-publish": {
+      "version": "1.0.0",
+      "installedAt": 1775570641098
+    },
+    "twitter-post": {
+      "version": "1.0.0",
+      "installedAt": 1775570665403
+    }
+  }
+}
