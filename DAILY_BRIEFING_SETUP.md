@@ -1,315 +1,123 @@
 # 每日简报运行方案
 
-本文档说明如何使用不同的 AI agent 运行每日简报。
+这个项目的稳定入口是本地 Python 脚本。Codex、Claude Code、Hermes 都可以围绕这个脚本运行，不需要每次让 agent 重新发明抓取流程。
 
-## 方案概览
-
-| 方案 | Agent | 优势 | 适用场景 |
-|------|-------|------|---------|
-| 方案 1 | Hermes | 灵活、可混合调用 | 需要多工具协作 |
-| 方案 2 | Claude Code | 代码和技术分析强 | 技术内容为主 |
-| 方案 3 | Codex | OpenAI 代码模型 | 代码生成和分析 |
-
-## 前置要求
-
-1. 已安装 Hermes Agent
-2. 已配置 Telegram bot（可选，用于接收简报）
-3. 已安装 Claude Code CLI 或 Codex CLI（根据选择的方案）
-
-### 安装 Claude Code
-```bash
-# 通过 npm 安装
-npm install -g @anthropic-ai/claude-code
-
-# 或通过 pip 安装
-pip install claude-code
-```
-
-### 安装 Codex
-```bash
-# 通过 npm 安装
-npm install -g @openai/codex-cli
-
-# 或通过 pip 安装
-pip install openai-codex
-```
-
-## 方案 1：使用 Hermes（推荐）
-
-### 手动运行
-```bash
-hermes run "Load daily-briefing skill and generate today's briefing"
-```
-
-### 定时任务（每天早上 8:30）
-```bash
-hermes cron create \
-  --schedule "30 8 * * *" \
-  --prompt "Load daily-briefing skill and generate today's briefing for Rion" \
-  --deliver telegram \
-  --name "每日AI简报"
-```
-
-### 使用 Hermes API（Python 脚本）
-```python
-#!/usr/bin/env python3
-import subprocess
-import json
-
-def generate_briefing():
-    """使用 Hermes 生成每日简报"""
-    result = subprocess.run(
-        ['hermes', 'run', 'Load daily-briefing skill and generate today\'s briefing'],
-        capture_output=True,
-        text=True
-    )
-    return result.stdout
-
-if __name__ == '__main__':
-    briefing = generate_briefing()
-    print(briefing)
-```
-
-## 方案 2：使用 Claude Code
-
-### 手动运行
-```bash
-claude --acp --stdio << 'EOF'
-Load the daily-briefing skill and generate today's briefing for Rion.
-Include: AI热点, Web3动态, 投资经济, GitHub项目, 选题素材
-EOF
-```
-
-### 定时任务（通过 Hermes cron）
-```bash
-hermes cron create \
-  --schedule "30 8 * * *" \
-  --prompt "Load daily-briefing skill and generate today's briefing for Rion" \
-  --acp-command claude \
-  --acp-args "--acp,--stdio" \
-  --deliver telegram \
-  --name "每日AI简报-Claude"
-```
-
-### Python 脚本调用
-```python
-#!/usr/bin/env python3
-import subprocess
-import json
-
-def generate_briefing_with_claude():
-    """使用 Claude Code 生成每日简报"""
-    prompt = """Load the daily-briefing skill and generate today's briefing for Rion.
-    
-    Include these sections:
-    1. AI热点 - Latest AI news and developments
-    2. Web3动态 - Web3 and crypto updates
-    3. 投资经济 - Investment and economic news
-    4. GitHub优质项目 - Trending GitHub projects
-    5. 选题素材 - Content ideas for social media
-    """
-    
-    result = subprocess.run(
-        ['claude', '--acp', '--stdio'],
-        input=prompt,
-        capture_output=True,
-        text=True
-    )
-    return result.stdout
-
-if __name__ == '__main__':
-    briefing = generate_briefing_with_claude()
-    print(briefing)
-```
-
-## 方案 3：使用 Codex
-
-### 手动运行
-```bash
-codex --acp --stdio << 'EOF'
-Load the daily-briefing skill and generate today's briefing for Rion.
-Include: AI热点, Web3动态, 投资经济, GitHub项目, 选题素材
-EOF
-```
-
-### 定时任务（通过 Hermes cron）
-```bash
-hermes cron create \
-  --schedule "30 8 * * *" \
-  --prompt "Load daily-briefing skill and generate today's briefing for Rion" \
-  --acp-command codex \
-  --acp-args "--acp,--stdio" \
-  --deliver telegram \
-  --name "每日AI简报-Codex"
-```
-
-### Python 脚本调用
-```python
-#!/usr/bin/env python3
-import subprocess
-import json
-
-def generate_briefing_with_codex():
-    """使用 Codex 生成每日简报"""
-    prompt = """Load the daily-briefing skill and generate today's briefing for Rion.
-    
-    Include these sections:
-    1. AI热点 - Latest AI news and developments
-    2. Web3动态 - Web3 and crypto updates
-    3. 投资经济 - Investment and economic news
-    4. GitHub优质项目 - Trending GitHub projects
-    5. 选题素材 - Content ideas for social media
-    """
-    
-    result = subprocess.run(
-        ['codex', '--acp', '--stdio'],
-        input=prompt,
-        capture_output=True,
-        text=True
-    )
-    return result.stdout
-
-if __name__ == '__main__':
-    briefing = generate_briefing_with_codex()
-    print(briefing)
-```
-
-## 方案 4：混合方案（最灵活）
-
-让 Hermes 作为主控，根据需要委托给 Claude Code 或 Codex：
+## Codex 直接调用（主入口）
 
 ```bash
-hermes cron create \
-  --schedule "30 8 * * *" \
-  --prompt "Generate daily briefing: delegate data collection to claude-code for technical content, use web_search for news, then format and deliver" \
-  --toolsets delegation,web,file \
-  --deliver telegram \
-  --name "每日AI简报-混合"
+./scripts/install-codex-skill.sh
 ```
 
-## 系统 Cron 方案（不依赖 Hermes cron）
+重新打开一个 Codex 任务后输入：
 
-如果你想用系统的 crontab：
+```text
+$daily-briefing 生成今日早报
+```
 
-### 1. 创建 Python 脚本
+最终结果会直接保存为 `outputs/briefing_YYYY-MM-DD.md`。不需要 Telegram，也不需要先启动 Hermes。
+
+## 推荐流程
+
 ```bash
-# 保存为 ~/daily_briefing.py
-chmod +x ~/daily_briefing.py
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+
+python briefing.py --dry-run --no-save
+python briefing.py
 ```
 
-### 2. 编辑 crontab
+## Codex
+
+在 Codex 打开仓库后，先跑：
+
 ```bash
-crontab -e
+python briefing.py --dry-run --no-save
+python -m unittest discover -s tests
 ```
 
-### 3. 添加定时任务
+通过后可直接生成确定性 Markdown：
+
+```bash
+python briefing.py --no-save
+```
+
+需要 Codex 用当前模型做最终精编时：
+
+```bash
+python briefing.py --editorial-packet --output-file outputs/editorial_packet.json
+```
+
+Codex 读取候选包后输出最终 Markdown，不需要 Hermes 或 Telegram，也不要求在 Python 里配置模型 API Key。
+
+Codex 还可以把用户反馈写回本地历史库：
+
+```bash
+python briefing.py --feedback "<链接>" --feedback-action published
+python briefing.py --feedback "<链接>" --feedback-action dismissed
+```
+
+每周复盘入口：
+
+```bash
+python briefing.py --weekly-review
+```
+
+如果需要保存 Markdown：
+
+```bash
+python briefing.py --format markdown --output-file outputs/today.md
+```
+
+## Claude Code / Hermes
+
+让 agent 进入仓库目录后执行脚本即可：
+
+```bash
+python briefing.py --format markdown
+```
+
+如果是 Hermes skill，可以把用户请求映射到这条命令。不要优先让 agent 手动逐站浏览，除非脚本抓取结果不够，需要人工补充。
+
+## 系统 Cron
+
+每天早上 8:30 生成 Markdown 版：
+
 ```cron
-# 每天早上 8:30 运行（使用 Hermes）
-30 8 * * * /usr/bin/python3 ~/daily_briefing.py >> ~/briefing.log 2>&1
-
-# 或使用 Claude Code
-30 8 * * * echo "Load daily-briefing skill" | claude --acp --stdio >> ~/briefing.log 2>&1
-
-# 或使用 Codex
-30 8 * * * echo "Load daily-briefing skill" | codex --acp --stdio >> ~/briefing.log 2>&1
+30 8 * * * cd /path/to/ai-daily-briefing && .venv/bin/python briefing.py >> briefing.log 2>&1
 ```
 
-## 发送到 Telegram
+如果需要纯文本版：
 
-如果想把简报发送到 Telegram，可以在脚本中添加：
-
-```python
-import requests
-
-def send_to_telegram(message):
-    """发送消息到 Telegram"""
-    bot_token = "YOUR_BOT_TOKEN"
-    chat_id = "YOUR_CHAT_ID"
-    
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    data = {
-        "chat_id": chat_id,
-        "text": message,
-        "parse_mode": "Markdown"
-    }
-    
-    response = requests.post(url, json=data)
-    return response.json()
-
-# 在主函数中调用
-if __name__ == '__main__':
-    briefing = generate_briefing()
-    send_to_telegram(briefing)
+```cron
+30 8 * * * cd /path/to/ai-daily-briefing && .venv/bin/python briefing.py --format text >> briefing.log 2>&1
 ```
 
-## 查看和管理定时任务
+## 可选推送
 
-### 查看 Hermes cron 任务
+当前仓库只负责生成内容，Codex 可直接读取生成文件。需要额外推送时，再放到外层自动化里做：
+
+1. `python briefing.py --output-file outputs/today.txt`
+2. 读取 `outputs/today.txt`
+3. 调用 Telegram Bot API 发送
+
+不要把 Bot Token 写进仓库。使用环境变量：
+
 ```bash
-hermes cron list
+export TELEGRAM_BOT_TOKEN="..."
+export TELEGRAM_CHAT_ID="..."
 ```
 
-### 暂停任务
+## 验收命令
+
 ```bash
-hermes cron pause <job_id>
+python -m compileall briefing.py briefing_store.py
+python -m unittest discover -s tests
+python briefing.py --dry-run --no-save
 ```
 
-### 恢复任务
+如果改了抓取选择器，再补：
+
 ```bash
-hermes cron resume <job_id>
+python briefing.py --no-save
 ```
-
-### 删除任务
-```bash
-hermes cron remove <job_id>
-```
-
-### 立即运行一次
-```bash
-hermes cron run <job_id>
-```
-
-## 故障排查
-
-### 检查 Hermes 日志
-```bash
-tail -f ~/.hermes/logs/gateway.log
-```
-
-### 检查 cron 日志
-```bash
-# 系统 cron 日志
-grep CRON /var/log/syslog
-
-# Hermes cron 输出
-ls -la ~/.hermes/cron/output/
-```
-
-### 测试脚本
-```bash
-# 手动运行测试
-python3 ~/daily_briefing.py
-
-# 测试 Claude Code
-echo "test" | claude --acp --stdio
-
-# 测试 Codex
-echo "test" | codex --acp --stdio
-```
-
-## 推荐配置
-
-根据你的需求，推荐使用：
-
-- **日常使用**：方案 1（Hermes）- 最灵活，支持多工具
-- **技术内容为主**：方案 2（Claude Code）- 代码分析强
-- **需要最大灵活性**：方案 4（混合）- 按需调用不同 agent
-
-## 下一步
-
-1. 选择一个方案
-2. 配置定时任务
-3. 测试运行
-4. 根据效果调整
-
-有问题随时问我！

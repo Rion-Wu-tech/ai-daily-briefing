@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Daily Briefing"
+  short_description: "在 Codex 中生成可点击的 AI/Web3 Markdown 早报"
+  default_prompt: "Use $daily-briefing to generate today’s AI/Web3 briefing as a clickable Markdown document."

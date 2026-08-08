@@ -1,202 +1,276 @@
-# AI Daily Briefing 🌅
+# AI Daily Briefing
 
-为 AI/Web3 自媒体创作者打造的每日早报生成工具。自动抓取 AI 热点、Web3 动态、投资经济、GitHub 优质项目，并生成选题素材。
+给 AI/Web3 自媒体创作者用的每日情报与选题系统。它会从媒体、官方源、开发者社区、论文、模型榜单和开源生态收集候选信号，整理成带可点击链接的 Markdown 中文早报，并为 Codex 提供可二次精编的结构化候选包。
 
-## ✨ 特性
+> **主打用法：在 Codex 里直接输入 `$daily-briefing 生成今日早报`，不需要 Hermes，也不需要打开 Telegram。**
 
-- 🤖 **AI 热点**：自动抓取 TechCrunch AI 分类最新 10 条新闻
-- 🔗 **Web3 热点**：CoinDesk 最新 3 条加密货币新闻（带情绪标签）
-- 💰 **投资 & 经济**：TechCrunch Venture 分类最新 5 条融资新闻
-- ⭐ **GitHub Trending**：今日 Trending 前 10 个项目（含语言、Stars、今日新增）
-- 💡 **选题素材**：基于热点自动生成 5 个内容创作选题建议
+## Codex 直接调用（推荐）
 
-## 🚀 快速开始
-
-### 方式一：作为 Hermes Agent Skill 使用（推荐）
-
-如果你使用 [Hermes Agent](https://github.com/NousResearch/hermes)：
+先克隆项目并安装仓库内置的 Codex Skill：
 
 ```bash
-# 安装 skill
-cd ~/.hermes/skills/research
-git clone https://github.com/Rion-Wu-tech/ai-daily-briefing.git daily-briefing
-
-# 使用
-# 在 Hermes 中直接说："给我今日早报"
+git clone https://github.com/Rion-Wu-tech/ai-daily-briefing.git
+cd ai-daily-briefing
+./scripts/install-codex-skill.sh
 ```
 
-### 方式二：使用 Claude Code 生成简报
+重新打开一个 Codex 任务后，直接输入：
 
-```bash
-# 手动运行
-claude --acp --stdio << 'EOF'
-Load the daily-briefing skill and generate today's briefing for Rion
-EOF
-
-# 或通过 Hermes cron 定时运行（每天早上 8:30）
-hermes cron create \
-  --schedule "30 8 * * *" \
-  --prompt "Load daily-briefing skill and generate today's briefing" \
-  --acp-command claude \
-  --acp-args "--acp,--stdio" \
-  --deliver telegram
+```text
+$daily-briefing 生成今日早报
 ```
 
-### 方式三：使用 Codex 生成简报
+也可以直接指定范围：
 
-```bash
-# 手动运行
-codex --acp --stdio << 'EOF'
-Load the daily-briefing skill and generate today's briefing for Rion
-EOF
-
-# 或通过 Hermes cron 定时运行（每天早上 8:30）
-hermes cron create \
-  --schedule "30 8 * * *" \
-  --prompt "Load daily-briefing skill and generate today's briefing" \
-  --acp-command codex \
-  --acp-args "--acp,--stdio" \
-  --deliver telegram
+```text
+$daily-briefing 检索过去 48 小时 AI 赛道爆火热点
+$daily-briefing 生成本周简报复盘
 ```
 
-### 方式四：独立 Python 脚本
+Codex 会自动完成抓取、去重、评分和二次精编，最终生成：
+
+```text
+outputs/briefing_YYYY-MM-DD.md
+```
+
+文档中的新闻标题和来源链接都可以直接点击。Python 模板负责稳定抓取和兜底，当前 Codex 模型负责最终选稿、中文解释、栏目编排与 X 草稿。
+
+已有同名 Skill 时，显式备份并替换：
 
 ```bash
-# 克隆仓库
+./scripts/install-codex-skill.sh --force
+```
+
+## 功能
+
+- AI 热点：TechCrunch、OpenAI、Google DeepMind、Hugging Face 官方更新
+- 补充信号：Hacker News、arXiv、Hugging Face Trending、AI HOT 精选
+- 官方追踪：Anthropic sitemap，以及 Codex、Claude Code、Gemini CLI、Transformers Releases
+- Web3 热点：CoinDesk 最新加密新闻
+- 投资 & 经济：TechCrunch Venture 分类新闻
+- GitHub 优质项目：GitHub Trending
+- 今日选题素材：把热点转成中文内容选题
+- Codex 友好：支持 `--dry-run` 离线验证、单元测试和稳定输出目录
+- 每条新闻/项目都会跟一行简短中文解释，排版保持干净，不额外加标签
+- 开头自动生成 `相比昨天的新变化`、`今日必须看`、`适合发 X`、`B端/商业机会` 和 `持续跟踪`
+- 用内容价值、商业价值、个人匹配、时效、可信度五个维度排序，综合分最高 96，避免大量虚高满分
+- 可信度区分 `官方确认`、`多源印证`、`单源信号`
+- X 草稿覆盖单帖、thread、视觉/视频脚本三种形态
+- SQLite 记录首次出现、最后出现、重复次数、来源数和每日排名；同一天重复运行不会重复计数
+- 可记录 `阅读 / 收藏 / 写稿 / 已发布 / 没价值`，后续排序会小幅学习你的真实选择
+- 每次真实抓取记录来源成功率、条目数和耗时，可生成 7 天来源健康报告
+- 自动生成周复盘：持续信号、内容反馈、偏好类别、来源健康度和下周动作
+- `--editorial-packet` 生成 Codex 精编包，由当前 Codex 模型做最终选稿和中文改写；Python 模板始终作为确定性兜底
+- 仓库内置标准 Codex Skill、UI 元数据和便携 runner；可以从 Codex 直接调用并落盘 Markdown
+- 自动过滤 AI 板块跑题内容，并合并同一链接或相似标题的重复报道
+- 媒体与官方源交替混排，单个来源失败时保留其他可用板块
+
+## 快速开始
+
+```bash
 git clone https://github.com/Rion-Wu-tech/ai-daily-briefing.git
 cd ai-daily-briefing
 
-# 安装依赖
-pip install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
 
-# 运行
+先跑离线验证：
+
+```bash
+python briefing.py --dry-run --no-save
+python -m unittest discover -s tests
+```
+
+真实抓取并保存 Markdown 简报，标题链接可点击，每条后面跟一行简短中文解释：
+
+```bash
 python briefing.py
 ```
 
-> 💡 **更多运行方案**：查看 [DAILY_BRIEFING_SETUP.md](./DAILY_BRIEFING_SETUP.md) 了解完整的 Codex、Claude Code、混合方案等详细配置
+默认输出到：
 
-## 📋 输出示例
-
-```
-==== 🌅 Rion 每日早报 · 2026.05.05 周二 ====
-
-━━━━━━━━━━━━━━━━━━
-🤖 AI 热点（10条）
-━━━━━━━━━━━━━━━━━━
-
-1. Nvidia CEO 黄仁勋称 AI 正在"创造大量工作机会"
-来源：TechCrunch | 3小时前
-尽管工人们担心 AI 带来的就业威胁...
-
-━━━━━━━━━━━━━━━━━━
-🔗 Web3 热点（3条）
-━━━━━━━━━━━━━━━━━━
-
-1. 比特币曾经讨厌通胀，现在可能相反了
-来源：CoinDesk | 4:45 PM（Positive）
-比特币正在与通胀信号一起上涨...
-
-━━━━━━━━━━━━━━━━━━
-💰 投资 & 经济（5条）
-━━━━━━━━━━━━━━━━━━
-
-━━━━━━━━━━━━━━━━━━
-⭐ GitHub 优质项目（10条）
-━━━━━━━━━━━━━━━━━━
-
-━━━━━━━━━━━━━━━━━━
-💡 今日选题素材（5个）
-━━━━━━━━━━━━━━━━━━
-
-1. 「AI 智能体编排平台大爆发：ruflo 单日暴涨 2600 星背后的故事」
-热点：ruflo 项目今日新增 2,598 stars → ...
+```text
+outputs/briefing_YYYY-MM-DD.md
 ```
 
-## 🛠️ 配置
+## 本地 Python 运行
 
-### Hermes Skill 配置
+不安装 Codex Skill 也可以独立运行：
 
-编辑 `SKILL.md` 中的 frontmatter：
-
-```yaml
----
-name: daily-briefing
-description: 为 Rion 生成每日早报...
-tags: [daily, briefing, news, ai, web3, github]
----
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python briefing.py --dry-run --no-save
+python -m unittest discover -s tests
 ```
 
-### 独立脚本配置
+如果 dry-run 和测试都通过，再跑真实抓取并保存 Markdown：
 
-编辑 `config.yaml`：
+```bash
+python briefing.py
+```
+
+更完整的 agent 运行说明见 [CODEX.md](./CODEX.md)。
+
+## 常用命令
+
+```bash
+# 离线样例数据，不访问外部网站
+python briefing.py --dry-run
+
+# 输出纯文本
+python briefing.py --format text
+
+# 输出 JSON，只打印不保存
+python briefing.py --format json --no-save
+
+# 输出 Codex 二次精编候选包
+python briefing.py --editorial-packet --output-file outputs/editorial_packet.json
+
+# 临时调试，不读写跨日历史
+python briefing.py --no-save --no-history
+
+# 记录反馈：目标可以是 item_key、完整链接或唯一标题
+python briefing.py --feedback "https://example.com/item" --feedback-action saved
+python briefing.py --feedback "标题" --feedback-action published --feedback-note "已发 X"
+python briefing.py --feedback "标题" --feedback-action dismissed
+
+# 生成最近 7 天周复盘
+python briefing.py --weekly-review
+
+# 周复盘只打印，不保存
+python briefing.py --weekly-review --no-save
+
+# 指定输出文件
+python briefing.py --format markdown --output-file outputs/today.md
+```
+
+## 配置
+
+编辑 [config.yaml](./config.yaml)：
 
 ```yaml
 sources:
   ai_news: "https://techcrunch.com/category/artificial-intelligence/"
+  ai_official:
+    - name: "OpenAI"
+      url: "https://openai.com/news/rss.xml"
+    - name: "Google DeepMind"
+      url: "https://deepmind.google/blog/rss.xml"
+    - name: "Hugging Face"
+      url: "https://huggingface.co/blog/feed.xml"
   web3_news: "https://www.coindesk.com/"
   venture_news: "https://techcrunch.com/category/venture/"
   github_trending: "https://github.com/trending"
+  hacker_news:
+    url: "https://hn.algolia.com/api/v1/search"
+    queries: ["AI agent", "LLM", "OpenAI", "Claude"]
+  arxiv:
+    url: "https://export.arxiv.org/api/query"
+    query: "cat:cs.AI OR cat:cs.CL OR cat:cs.LG"
+  huggingface_models: "https://huggingface.co/api/models"
+  aihot: "https://aihot.today/ai-news"
 
 output:
-  format: "text"  # text, markdown, json
-  language: "zh"  # zh, en
+  format: "markdown"
+  language: "zh"
+  output_dir: "outputs"
+
+limits:
+  ai_news: 10
+  ai_official_per_source: 3
+  web3_news: 3
+  venture_news: 5
+  github_projects: 10
+  topics: 5
+
+quality:
+  max_feed_age_days: 10
+  similarity_threshold: 0.76
+  min_similarity_tokens: 4
+
+history:
+  enabled: true
+  database: "data/briefing_history.sqlite3"
 ```
 
-## 📅 定时任务
+## 输出格式
 
-### Hermes Cron Job
+支持三种格式，默认是 `markdown`：
+
+- `markdown`：默认，带可点击链接，适合文章草稿、公众号、飞书、Obsidian 二次整理
+- `text`：适合 Telegram、微信、即时消息
+- `json`：适合接到自动化工作流里继续处理
+
+默认 Markdown 结构：
+
+```text
+相比昨天的新变化
+今日必须看
+适合发 X 的选题
+B端/商业机会
+持续跟踪
+X 草稿
+AI 热点
+Web3 热点
+投资 & 经济
+GitHub 优质项目
+今日选题素材
+```
+
+## 项目结构
+
+```text
+briefing.py        # CLI 和核心抓取逻辑
+briefing_store.py  # SQLite 跨日历史与排名轨迹
+config.yaml        # 数据源、输出格式、数量限制
+CODEX.md           # Codex/agent 运行说明
+AGENTS.md          # 给 Codex 的仓库维护指令
+scripts/           # Codex Skill 安装脚本
+skills/daily-briefing/ # 可直接安装和调用的 Codex Skill
+tests/             # 单元测试
+outputs/           # 生成结果，本地目录，不提交 Git
+```
+
+反馈动作对应关系：
+
+| 动作 | 含义 | 对排序的影响 |
+| --- | --- | --- |
+| `opened` | 打开阅读 | 轻微正向 |
+| `saved` | 收藏 | 正向 |
+| `drafted` | 写成草稿 | 较强正向 |
+| `published` | 已经发布 | 最强正向 |
+| `dismissed` | 没价值 | 负向 |
+
+反馈影响有上下限，只调整同一条、同一来源和同一类别，不会覆盖五维基础评分。
+
+## 其他 Agent 使用
+
+根目录的 [SKILL.md](./SKILL.md) 保留给其他 Agent 兼容使用；Codex 的标准 Skill 位于 [skills/daily-briefing/SKILL.md](./skills/daily-briefing/SKILL.md)。所有入口共用同一个 Python 内核：
 
 ```bash
-# 在 Hermes 中设置定时任务
-# 每天早上 8:00 (AEDT) 自动推送
+python briefing.py --format markdown
 ```
 
-### Linux Cron
+## 开发验收
+
+改完代码后至少跑：
 
 ```bash
-# 编辑 crontab
-crontab -e
-
-# 添加定时任务（每天早上 8:00）
-0 8 * * * cd ~/ai-daily-briefing && python briefing.py
+python -m compileall briefing.py briefing_store.py
+python -m unittest discover -s tests
+python briefing.py --dry-run --no-save
 ```
 
-## 🎯 适用人群
+如果改了抓取逻辑，再跑一次：
 
-- AI/Web3 自媒体创作者
-- 科技内容创作者
-- 需要每日科技资讯的从业者
-- 想要快速了解行业动态的开发者
+```bash
+python briefing.py --no-save
+```
 
-## 🤝 贡献
+## License
 
-欢迎提交 Issue 和 Pull Request！
-
-### 开发计划
-
-- [ ] 支持更多数据源（Hacker News, Product Hunt）
-- [ ] 支持自定义模板
-- [ ] 添加邮件推送功能
-- [ ] Web 界面
-- [ ] 多语言支持
-
-## 📄 开源协议
-
-MIT License
-
-## 👤 作者
-
-**Rion Wu**
-- X/Twitter: [@rionaifantasy]
-- GitHub: [@Rion-Wu-tech](https://github.com/Rion-Wu-tech)
-
-## 🙏 致谢
-
-- [Hermes Agent](https://github.com/NousResearch/hermes) - 强大的 AI Agent 框架
-- [TechCrunch](https://techcrunch.com/) - AI 和科技新闻来源
-- [CoinDesk](https://www.coindesk.com/) - 加密货币新闻来源
-- [GitHub Trending](https://github.com/trending) - 优质开源项目发现
-
----
-
-如果这个项目对你有帮助，请给个 ⭐️ Star！
+MIT

@@ -1,19 +1,120 @@
 # 数据源配置
 sources:
   ai_news: "https://techcrunch.com/category/artificial-intelligence/"
+  ai_official:
+    - name: "OpenAI"
+      url: "https://openai.com/news/rss.xml"
+    - name: "Google DeepMind"
+      url: "https://deepmind.google/blog/rss.xml"
+    - name: "Hugging Face"
+      url: "https://huggingface.co/blog/feed.xml"
   web3_news: "https://www.coindesk.com/"
   venture_news: "https://techcrunch.com/category/venture/"
   github_trending: "https://github.com/trending"
+  hacker_news:
+    url: "https://hn.algolia.com/api/v1/search"
+    queries: ["AI agent", "LLM", "OpenAI", "Claude"]
+    lookback_hours: 96
+    min_points: 20
+  arxiv:
+    url: "https://export.arxiv.org/api/query"
+    query: "cat:cs.AI OR cat:cs.CL OR cat:cs.LG"
+  huggingface_models: "https://huggingface.co/api/models"
+  aihot: "https://aihot.today/ai-news"
+  official_sitemaps:
+    - name: "Anthropic"
+      url: "https://www.anthropic.com/sitemap.xml"
+      include: ["/news/", "/research/", "/engineering/"]
+  github_releases:
+    - "openai/codex"
+    - "anthropics/claude-code"
+    - "google-gemini/gemini-cli"
+    - "huggingface/transformers"
 
 # 输出配置
 output:
-  format: "text"  # text, markdown, json
+  format: "markdown"  # text, markdown, json
   language: "zh"  # zh, en
+  output_dir: "outputs"
   
 # 数量限制
 limits:
   ai_news: 10
+  ai_official_per_source: 3
   web3_news: 3
   venture_news: 5
   github_projects: 10
   topics: 5
+  highlights: 5
+  x_topics: 5
+  x_drafts: 3
+  hacker_news: 5
+  arxiv: 4
+  huggingface_models: 4
+  aihot: 5
+  official_sitemaps_per_source: 3
+  github_releases_per_repo: 1
+  ecosystem_signals: 18
+  changes: 5
+  business_opportunities: 5
+  watchlist: 5
+  editorial_queue: 20
+
+# 网络请求配置
+request:
+  timeout: 25
+  user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+
+# 内容质量控制：限制过旧官方更新，并合并同一事件的重复报道。
+quality:
+  max_feed_age_days: 10
+  similarity_threshold: 0.76
+  min_similarity_tokens: 4
+
+# 正常保存早报时记录跨日变化；dry-run、--no-save 和 --no-history 不写入。
+history:
+  enabled: true
+  database: "data/briefing_history.sqlite3"
+
+# Rion 个性化排序。它会进入五维评分中的「个人匹配」，不是唯一排序依据。
+personalization:
+  enabled: true
+  baseline: 36
+  section_boosts:
+    ai: 6
+    web3: 5
+    venture: 5
+    github: 8
+  signals:
+    - label: "Agent / AI 编码"
+      weight: 28
+      keywords: ["agent", "agents", "agentic", "codex", "claude code", "mcp", "devtools", "swe-bench", "智能体", "多智能体"]
+      reason: "贴合你正在用的 Codex、Claude Code 和 Agent 工作流，适合做工具测评或效率流内容。"
+    - label: "B 端 AI 工作流"
+      weight: 24
+      keywords: ["automation", "workflow", "enterprise", "deployment", "productivity", "office", "meeting", "transcription", "support", "sales", "saas", "b2b", "自动化", "工作流", "办公", "企业"]
+      reason: "能连接到 B 端服务、企业提效或工作流改造，适合发展成案例、咨询或产品 demo。"
+    - label: "模型竞争格局"
+      weight: 18
+      keywords: ["openai", "anthropic", "claude", "google", "gemini", "deepmind", "mistral", "meta", "llama", "microsoft", "copilot", "xai", "grok"]
+      reason: "适合判断模型公司格局、生态路线和未来内容叙事，不只盯单个产品更新。"
+    - label: "AI 自媒体信息差"
+      weight: 20
+      keywords: ["browser", "search", "platform", "creator", "social", "prompt", "system prompt", "system_prompts", "glossary", "open source", "github", "vibe-coded", "浏览器", "搜索", "提示词", "开源"]
+      reason: "适合拆成 X 选题、工具清单、观点单帖或信息差内容。"
+    - label: "AI 视频/图像/多模态"
+      weight: 20
+      keywords: ["video", "image", "vision", "multimodal", "sora", "runway", "midjourney", "stable diffusion", "视频", "图像", "多模态"]
+      reason: "贴近你的 AI 视频和 AI 图像能力，适合做视觉内容、工具测评或多平台素材。"
+    - label: "Web3 信息差"
+      weight: 22
+      keywords: ["web3", "crypto", "bitcoin", "btc", "xrp", "solana", "blockchain", "on-chain", "prediction market", "regulation", "tokenized", "etf", "rwa", "链上", "监管"]
+      reason: "适合做 Web3 信息差、监管变化、市场情绪或链上基础设施解读。"
+    - label: "商业化/资本信号"
+      weight: 18
+      keywords: ["funding", "fund", "venture", "vc", "ipo", "acquisition", "revenue", "valuation", "spending", "capital", "融资", "资本", "上市"]
+      reason: "能辅助判断 AI 商业化、融资风向和潜在变现赛道。"
+    - label: "学习/知识库"
+      weight: 12
+      keywords: ["paper", "research", "benchmark", "course", "book", "learning", "study", "论文", "研究", "教程"]
+      reason: "适合沉淀到知识库，后续可以转成科普、课程或学习路线内容。"

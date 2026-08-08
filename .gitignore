@@ -6,6 +6,7 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 ENV/
 build/
 develop-eggs/
@@ -38,6 +39,9 @@ Thumbs.db
 briefing_*.txt
 briefing_*.json
 briefing_*.md
+outputs/
+data/*.sqlite3
+data/*.sqlite3-*
 
 # Config (if contains sensitive info)
 # config.yaml
