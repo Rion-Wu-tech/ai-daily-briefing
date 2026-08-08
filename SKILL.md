@@ -1,106 +1,101 @@
 ---
 name: daily-briefing
-description: 为 Rion 生成每日早报。涵盖 AI 热点、Web3 动态、投资经济、GitHub 优质项目、选题素材五个板块。适合 AI/Web3 自媒体创作者。
+description: 为 Rion 生成带跨日变化、可信度分层、商业机会和 X 草稿的每日 AI/Web3 早报。
 tags: [daily, briefing, news, ai, web3, github, rion]
 ---
 
-# 每日早报生成流程
+# 每日早报 Skill
+
+> Codex 的标准可安装版本位于 `skills/daily-briefing/`。本文件保留为 Claude Code、Hermes 和其他 Agent 的兼容入口。
 
 ## 触发条件
-- 用户说"给我今日早报"、"早报"、"daily briefing"
-- Cron job 定时推送
 
-## 重要经验
+- 用户说「给我今日早报」「生成早报」「daily briefing」
+- 定时任务需要生成每日 AI/Web3 简报
+- 需要把当天热点整理成中文自媒体选题
 
-**不要用 delegate_task** — 曾因超时（43秒后中断）失败。直接用 browser 工具逐站抓取。
+## 推荐执行方式
 
-**日期星期必须严格校验** — 曾犯错把周日写成周六（2026-04-12）。生成标题时，必须根据实际日期计算星期几，不能靠猜测或惯性填写。可用 `date +%A` 或 Python `datetime.weekday()` 验证。中文星期对照：Monday=周一、Tuesday=周二、Wednesday=周三、Thursday=周四、Friday=周五、Saturday=周六、Sunday=周日。
+普通自动化或无模型环境，直接运行确定性 Markdown 版本：
 
-## 数据来源（按顺序抓取）
-
-1. **AI 热点** → https://techcrunch.com/category/artificial-intelligence/
-   - 取最近 10 条 AI 相关新闻标题 + 时间 + 摘要
-
-2. **Web3 热点** → https://www.coindesk.com/
-   - 取首页 Latest Crypto News 中最新 3 条，带情绪标签（Positive/Negative/Neutral）
-
-3. **投资 & 经济** → https://techcrunch.com/category/venture/
-   - 取最近 5 条融资/投资相关新闻
-
-4. **GitHub 优质项目** → https://github.com/trending
-   - 取今日 Trending 前 10 个，记录：名称、语言、Stars、今日新增、一句话介绍
-   - scroll down 一次获取更多项目
-
-5. **选题素材** — 根据以上热点，人工合成 5 个选题建议
-
-## 输出格式（纯文本，不用 Markdown，因为是 Telegram）
-
-```
-==== 🌅 Rion 每日早报 · YYYY.MM.DD ====
-
-━━━━━━━━━━━━━━━━━━
-🤖 AI 热点（10条）
-━━━━━━━━━━━━━━━━━━
-
-1. [标题]
-来源：[来源] | [时间]
-[1-2句摘要]
-
-...（共10条）
-
-━━━━━━━━━━━━━━━━━━
-🔗 Web3 热点（3条）
-━━━━━━━━━━━━━━━━━━
-
-1. [标题]
-来源：CoinDesk | [时间]
-[1-2句摘要]
-
-...（共3条）
-
-━━━━━━━━━━━━━━━━━━
-💰 投资 & 经济（5条）
-━━━━━━━━━━━━━━━━━━
-
-1. [标题]
-来源：[来源] | [时间]
-[1-2句摘要]
-
-...（共5条）
-
-━━━━━━━━━━━━━━━━━━
-⭐ GitHub 优质项目（10条）
-━━━━━━━━━━━━━━━━━━
-
-1. owner/repo-name
-语言：[语言] | ⭐ [总Stars] | 今日新增 [N]
-[一句话介绍]
-
-...（共10条）
-
-━━━━━━━━━━━━━━━━━━
-💡 今日选题素材（5个）
-━━━━━━━━━━━━━━━━━━
-
-1. 「[选题标题]」
-热点：[关联热点] → [一句话说明为何适合创作]
-
-...（共5个）
-
-━━━━━━━━━━━━━━━━━━
-🕐 YYYY.MM.DD 早报完毕
-━━━━━━━━━━━━━━━━━━
+```bash
+python briefing.py --format markdown
 ```
 
-## 选题素材原则
-- 结合当天最热点事件
-- 角度要适合 AI/Web3 中文自媒体受众
-- 可以带澳洲/华人视角
-- 有对比测评、科普、争议性话题优先
+在 Codex 里优先直接调用 `$daily-briefing`。Skill 内部默认使用两阶段精编：
 
-## Cron Job 信息
-- Job ID: 2a069af47d3e
-- 名称: Rion每日早报
-- 模型: anthropic/claude-haiku-4-5
-- 定时: 每天 21:00 (UTC+10，即 AEDT 早上 8:00)
-- 推送: origin (Telegram)
+```bash
+skills/daily-briefing/scripts/run-daily-briefing.sh \
+  --editorial-packet \
+  --output-file outputs/editorial_packet.json
+```
+
+先由 Python 抓取、去重、打分并记录跨日历史，再由当前 Codex 模型读取候选包，完成最终选稿、中文解释和 X 草稿。不得补写候选包里不存在的事实或数字，所有条目保留原始可点击链接。
+
+如果只是验证环境是否能跑：
+
+```bash
+python briefing.py --dry-run --no-save
+```
+
+如果用户要纯文本：
+
+```bash
+python briefing.py --format text
+```
+
+## 输出结构
+
+1. 相比昨天的新变化
+2. 今日必须看
+3. 适合发 X 的选题
+4. B端/商业机会
+5. 持续跟踪
+6. X 草稿
+7. AI / Web3 / 投资 / GitHub 明细
+
+## 反馈闭环
+
+当用户对本次早报说“看了”“收藏了”“准备写”“已经发了”“没价值”时，从当前早报或精编包找到对应条目的链接，直接记录反馈：
+
+```bash
+python briefing.py --feedback "<链接>" --feedback-action opened
+python briefing.py --feedback "<链接>" --feedback-action saved
+python briefing.py --feedback "<链接>" --feedback-action drafted
+python briefing.py --feedback "<链接>" --feedback-action published
+python briefing.py --feedback "<链接>" --feedback-action dismissed
+```
+
+能从上下文确定条目时不要再让用户重复提供标题。反馈只做有限加减分，不能覆盖时效和可信度。
+
+用户说“生成本周简报复盘”“看看这周哪些内容最有用”时：
+
+```bash
+python briefing.py --weekly-review
+```
+
+周复盘包含持续信号、反馈偏好、来源成功率和下周动作。
+
+默认输出 Markdown，新闻标题和项目名都带可点击链接。排序同时参考内容价值、商业价值、个人匹配、时效和可信度；可信度标注为 `官方确认`、`多源印证` 或 `单源信号`。每条保留简短中文解释，不加“摘要”“一句话介绍”“中文总结”等前缀。
+
+## 重要规则
+
+- 日期和星期必须由系统时间计算，不要靠猜。
+- 外部网站抓取失败时，不要编造新闻；说明暂未抓到，并保留其他成功板块。
+- `--dry-run` 是 Codex/CI 的稳定 smoke test，不能删。
+- `--no-save`、`--dry-run`、`--no-history` 不写入跨日历史。
+- 每次正常保存真实早报时，记录来源成功率、条数和耗时。
+- 生成选题要适合中文 AI/Web3 自媒体受众，可以带澳洲、华人、出海、B 端服务视角。
+
+## 数据源
+
+- AI 热点：TechCrunch + OpenAI、Google DeepMind、Hugging Face 官方 RSS
+- 补充信号：Hacker News、arXiv、Hugging Face Trending、AI HOT
+- 官方追踪：Anthropic sitemap、指定 GitHub Releases
+- Web3 热点：CoinDesk
+- 投资 & 经济：TechCrunch Venture 分类
+- GitHub 项目：GitHub Trending
+
+数据源和数量限制在 `config.yaml` 中维护。
+
+生成时会过滤明显跑题的 AI 新闻，并按 URL 与标题相似度合并同一事件；媒体和官方来源交替混排，某个源失败不会影响其他板块。
