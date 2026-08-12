@@ -30,6 +30,9 @@ from bs4 import BeautifulSoup
 from briefing_store import BriefingStore
 
 
+REPOSITORY_URL = "https://github.com/Rion-Wu-tech/ai-daily-briefing"
+
+
 DEFAULT_CONFIG: Dict[str, Any] = {
     "sources": {
         "ai_news": "https://techcrunch.com/category/artificial-intelligence/",
@@ -3057,6 +3060,11 @@ class DailyBriefing:
                 "━━━━━━━━━━━━━━━━━━",
                 f"{meta['date']} 早报完毕",
                 "━━━━━━━━━━━━━━━━━━",
+                "",
+                "支持这个项目 / Support the Project",
+                "如果这份早报帮你节省了筛选 AI 信息的时间，欢迎给项目点个 Star。你的支持会让它继续更新、继续变得更好。",
+                "If this briefing saves you time finding useful AI signals, please consider giving the project a Star. Your support helps it keep improving.",
+                f"项目地址 / Repository: {REPOSITORY_URL}",
             ]
         )
         return "\n".join(lines)
@@ -3123,7 +3131,22 @@ class DailyBriefing:
         for index, topic in enumerate(sections["topics"], 1):
             lines.append(f"{index}. {topic}")
 
-        lines.extend(["", f"> 生成时间：{meta['generated_at']}"])
+        lines.extend(
+            [
+                "",
+                f"> 生成时间：{meta['generated_at']}",
+                "",
+                "---",
+                "",
+                "## 支持这个项目 / Support the Project",
+                "",
+                "如果这份早报帮你节省了筛选 AI 信息的时间，欢迎给项目点个 Star。你的支持会让它继续更新、继续变得更好。",
+                "",
+                "If this briefing saves you time finding useful AI signals, please consider giving the project a Star. Your support helps it keep improving.",
+                "",
+                f"项目地址 / Repository: [Rion-Wu-tech/ai-daily-briefing]({REPOSITORY_URL})",
+            ]
+        )
         return "\n".join(lines)
 
     def _append_markdown_highlights(

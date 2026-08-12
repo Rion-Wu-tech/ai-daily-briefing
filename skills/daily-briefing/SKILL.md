@@ -43,6 +43,8 @@ X 草稿
 
 8. Make X drafts structurally different: include at least a single post, a thread, and a visual or video script when the candidate pool supports them.
 
+9. End every final Markdown briefing with a concise bilingual support section. Use the heading `支持这个项目 / Support the Project`, invite readers in natural Chinese and English to Star the project if the briefing was useful, and include the canonical repository link exactly once: `https://github.com/Rion-Wu-tech/ai-daily-briefing`. Keep this section brief and place it after source notes so it does not compete with the briefing.
+
 ## Deterministic Fallback
 
 If the Codex editorial pass cannot be completed, generate a complete linked Markdown file directly:

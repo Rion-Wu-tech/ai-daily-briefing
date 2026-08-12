@@ -82,6 +82,12 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertIn("综合 ", markdown)
         self.assertIn("可信 ", markdown)
         self.assertNotIn("Rion 相关度", markdown)
+        self.assertIn("## 支持这个项目 / Support the Project", markdown)
+        self.assertIn("please consider giving the project a Star", markdown)
+        self.assertEqual(
+            markdown.count("https://github.com/Rion-Wu-tech/ai-daily-briefing"),
+            1,
+        )
         self.assertGreaterEqual(len(data["sections"]["highlights"]), 1)
         self.assertGreaterEqual(len(data["sections"]["x_topics"]), 1)
         self.assertGreaterEqual(len(data["sections"]["x_drafts"]), 1)

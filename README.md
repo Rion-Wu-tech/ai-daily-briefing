@@ -1,3 +1,7 @@
+<p align="center">
+  <strong>简体中文</strong> | <a href="./README_EN.md">English</a>
+</p>
+
 # AI Daily Briefing
 
 给 AI/Web3 自媒体创作者用的每日情报与选题系统。它会从媒体、官方源、开发者社区、论文、模型榜单和开源生态收集候选信号，整理成带可点击链接的 Markdown 中文早报，并为 Codex 提供可二次精编的结构化候选包。
@@ -64,6 +68,7 @@ outputs/briefing_YYYY-MM-DD.md
 - 仓库内置标准 Codex Skill、UI 元数据和便携 runner；可以从 Codex 直接调用并落盘 Markdown
 - 自动过滤 AI 板块跑题内容，并合并同一链接或相似标题的重复报道
 - 媒体与官方源交替混排，单个来源失败时保留其他可用板块
+- 早报结尾自动生成简短的中英双语 Star 引导，并保留唯一的官方仓库链接
 
 ## 快速开始
 
@@ -219,6 +224,7 @@ Web3 热点
 投资 & 经济
 GitHub 优质项目
 今日选题素材
+支持这个项目 / Support the Project
 ```
 
 ## 项目结构
