@@ -1,4 +1,5 @@
 import json
+import os
 import sqlite3
 import tempfile
 import unittest
@@ -6,6 +7,7 @@ from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime, timezone
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 
 from bs4 import BeautifulSoup
 
@@ -48,6 +50,11 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertIn("changes", parsed["sections"])
         self.assertIn("business_opportunities", parsed["sections"])
         self.assertIn("watchlist", parsed["sections"])
+        self.assertIn("model_releases", parsed["sections"])
+        self.assertIn("official_social_updates", parsed["sections"])
+        self.assertIn("official_x_watchlist", parsed["sections"])
+        self.assertIn("official_model_watchlist", parsed["sections"])
+        self.assertIn("official_product_watchlist", parsed["sections"])
         self.assertIn("editorial_queue", parsed["sections"])
         self.assertIn("x_topics", parsed["sections"])
         self.assertIn("x_drafts", parsed["sections"])
@@ -64,6 +71,12 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertIn("timeliness_score", parsed["sections"]["ai_news"][0])
         self.assertIn("credibility_score", parsed["sections"]["ai_news"][0])
         self.assertEqual(parsed["metadata"]["editorial_mode"], "codex-ready")
+        self.assertTrue(
+            all(
+                item.get("signal_type") != "model_release"
+                for item in parsed["sections"]["ai_news"]
+            )
+        )
 
     def test_markdown_has_highlights_and_x_topics(self):
         briefing = DailyBriefing(dry_run=True)
@@ -71,6 +84,8 @@ class DailyBriefingTests(unittest.TestCase):
         markdown = briefing.format_output(data, "markdown")
 
         self.assertIn("## 相比昨天的新变化", markdown)
+        self.assertIn("## 最新模型发布", markdown)
+        self.assertIn("## 模型公司官方账号动态", markdown)
         self.assertIn("## 今日必须看", markdown)
         self.assertIn("## 适合发 X 的选题", markdown)
         self.assertIn("## B端/商业机会", markdown)
@@ -91,6 +106,13 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertGreaterEqual(len(data["sections"]["highlights"]), 1)
         self.assertGreaterEqual(len(data["sections"]["x_topics"]), 1)
         self.assertGreaterEqual(len(data["sections"]["x_drafts"]), 1)
+        self.assertGreaterEqual(len(data["sections"]["model_releases"]), 1)
+        self.assertTrue(
+            all(
+                item["verification"] == "官方确认"
+                for item in data["sections"]["model_releases"]
+            )
+        )
 
     def test_x_drafts_are_structured_and_copyable(self):
         briefing = DailyBriefing(dry_run=True)
@@ -449,6 +471,221 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertEqual(rows[0]["summary"], "A useful agent update.")
         self.assertEqual(rows[1]["url"], "https://example.com/hf-model-guide")
 
+    def test_official_feed_marks_model_launch_without_marking_enterprise_report(self):
+        briefing = DailyBriefing(dry_run=True)
+        model = {
+            "title": "Introducing GPT-6",
+            "summary": "A new frontier model is now available.",
+        }
+        report = {
+            "title": "How enterprises put AI to work",
+            "summary": "A report about adoption and workflows.",
+        }
+        application = {
+            "title": "Putting sign language AI into users' hands",
+            "summary": "A research model is now available to selected users.",
+        }
+        program = {
+            "title": "Claude for nonprofits",
+            "summary": "Anthropic is launching a social impact program.",
+        }
+        versioned_model = {
+            "title": "Gemini 3.1 Pro",
+            "summary": "The latest model in the Gemini family.",
+        }
+
+        briefing._mark_official_model_release(model)
+        briefing._mark_official_model_release(report)
+        briefing._mark_official_model_release(application)
+        briefing._mark_official_model_release(program)
+        briefing._mark_official_model_release(versioned_model)
+
+        self.assertEqual(model["signal_type"], "model_release")
+        self.assertTrue(model["official"])
+        self.assertEqual(versioned_model["signal_type"], "model_release")
+        self.assertNotIn("signal_type", report)
+        self.assertNotIn("signal_type", application)
+        self.assertNotIn("signal_type", program)
+
+    def test_official_huggingface_org_returns_first_party_model_release(self):
+        briefing = DailyBriefing(dry_run=False, history_enabled=False)
+        briefing.config["quality"]["model_release_max_age_days"] = 0
+        briefing.config["sources"]["official_model_orgs"] = [
+            {"name": "Qwen", "author": "Qwen"}
+        ]
+        briefing._get_json = lambda url, params=None: [
+            {
+                "id": "Qwen/Qwen-Test-32B",
+                "pipeline_tag": "text-generation",
+                "likes": 88,
+                "createdAt": "2026-08-12T08:00:00Z",
+            }
+        ]
+
+        rows = briefing.fetch_official_model_orgs(limit_per_org=1)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["signal_type"], "model_release")
+        self.assertEqual(rows[0]["release_kind"], "开源权重/模型卡")
+        self.assertTrue(rows[0]["official"])
+        self.assertEqual(
+            rows[0]["url"], "https://huggingface.co/Qwen/Qwen-Test-32B"
+        )
+
+    def test_official_watchlists_cover_major_us_and_china_labs(self):
+        briefing = DailyBriefing(dry_run=True)
+
+        model_orgs = {
+            row["name"]
+            for row in briefing.config["sources"]["official_model_orgs"]
+        }
+        x_accounts = {
+            row["name"]: row["handle"]
+            for row in briefing.official_x_watchlist()
+        }
+
+        self.assertGreaterEqual(len(model_orgs), 42)
+        self.assertTrue(
+            {"OpenAI", "Microsoft", "NVIDIA", "Qwen", "DeepSeek", "Kimi", "MiniMax"}
+            <= model_orgs
+        )
+        self.assertEqual(x_accounts["OpenAI"], "OpenAI")
+        self.assertEqual(x_accounts["Qwen"], "Alibaba_Qwen")
+        self.assertEqual(x_accounts["xAI"], "SpaceXAI")
+        self.assertEqual(x_accounts["Tencent Hunyuan"], "TencentHunyuan")
+        self.assertEqual(x_accounts["Huawei Cloud / Pangu"], "HuaweiCloud1")
+        self.assertEqual(x_accounts["Claude"], "ClaudeAI")
+        self.assertEqual(x_accounts["Grok"], "grok")
+        self.assertEqual(x_accounts["Cursor"], "cursor_ai")
+        self.assertEqual(x_accounts["Black Forest Labs"], "bfl_ai")
+        self.assertEqual(x_accounts["Cerebras"], "Cerebras")
+        self.assertEqual(x_accounts["Ant Ling"], "AntLingAGI")
+        self.assertEqual(x_accounts["Wan"], "Alibaba_Wan")
+        self.assertGreaterEqual(len(x_accounts), 61)
+        product_pages = {
+            row["name"] for row in briefing.official_product_page_watchlist()
+        }
+        self.assertTrue(
+            {"Claude Code Changelog", "Cursor Changelog", "Grok Release Notes"}
+            <= product_pages
+        )
+
+    def test_official_source_config_has_no_duplicates_or_known_unofficial_accounts(self):
+        briefing = DailyBriefing(dry_run=True)
+        sources = briefing.config["sources"]
+
+        for key, field in (
+            ("official_model_orgs", "author"),
+            ("official_model_pages", "url"),
+            ("official_product_pages", "url"),
+            ("official_x_accounts", "handle"),
+        ):
+            values = [str(row[field]).lower() for row in sources[key]]
+            self.assertEqual(len(values), len(set(values)), key)
+
+        handles = {
+            row["handle"].lower() for row in sources["official_x_accounts"]
+        }
+        self.assertNotIn("claude_code", handles)
+        self.assertNotIn("bfl_ml", handles)
+        self.assertNotIn("inclusionai", handles)
+
+    def test_official_x_api_updates_keep_direct_post_links(self):
+        briefing = DailyBriefing(dry_run=False, history_enabled=False)
+        briefing.config["sources"]["official_x_accounts"] = [
+            {"name": "OpenAI", "handle": "OpenAI", "country": "US"}
+        ]
+
+        class Response:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {
+                    "data": [
+                        {
+                            "id": "123",
+                            "author_id": "1",
+                            "created_at": "2026-08-13T01:00:00Z",
+                            "text": "Codex now supports a faster review workflow.",
+                            "public_metrics": {
+                                "like_count": 100,
+                                "retweet_count": 10,
+                            },
+                        }
+                    ],
+                    "includes": {
+                        "users": [
+                            {"id": "1", "name": "OpenAI", "username": "OpenAI"}
+                        ]
+                    },
+                }
+
+        briefing.session.get = lambda *args, **kwargs: Response()
+        with patch.dict(os.environ, {"X_BEARER_TOKEN": "test-token"}):
+            rows = briefing.fetch_official_x_updates()
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["signal_type"], "official_social")
+        self.assertEqual(rows[0]["url"], "https://x.com/OpenAI/status/123")
+        self.assertTrue(rows[0]["official"])
+
+    def test_qwen_changelog_parser_keeps_qwen_and_excludes_third_party_models(self):
+        briefing = DailyBriefing(dry_run=True)
+        briefing.config["quality"]["model_release_max_age_days"] = 0
+        soup = BeautifulSoup(
+            """
+            <main>
+              <div>August 12, 2026</div>
+              <h3 id="qwen-test">qwen-test-32b</h3>
+              <p>A new Qwen model with tool use.</p>
+              <h3 id="glm-test">ZHIPU/GLM-Test</h3>
+              <p>A third-party model is available.</p>
+            </main>
+            """,
+            "html.parser",
+        )
+        config = {
+            "name": "QwenCloud",
+            "url": "https://docs.qwencloud.com/changelog/models",
+            "include_prefixes": ["qwen", "wan"],
+        }
+
+        rows = briefing._parse_qwen_model_changelog(soup, config, 5)
+
+        self.assertEqual(len(rows), 1)
+        self.assertIn("qwen-test-32b", rows[0]["title"])
+        self.assertEqual(rows[0]["published_at"], "2026-08-12T00:00:00+00:00")
+        self.assertTrue(rows[0]["official"])
+
+    def test_mistral_changelog_parser_only_keeps_model_release_blocks(self):
+        briefing = DailyBriefing(dry_run=True)
+        briefing.config["quality"]["model_release_max_age_days"] = 0
+        soup = BeautifulSoup(
+            """
+            <main>
+              <h3>Aug 26</h3>
+              <h2>August 12</h2>
+              <p>We released Mistral Test (mistral-test).</p>
+              <span>MODEL RELEASED</span>
+              <h2>August 11</h2>
+              <p>We updated the dashboard.</p>
+              <span>OTHER</span>
+            </main>
+            """,
+            "html.parser",
+        )
+        config = {
+            "name": "Mistral AI",
+            "url": "https://docs.mistral.ai/resources/changelogs",
+        }
+
+        rows = briefing._parse_mistral_model_changelog(soup, config, 5)
+
+        self.assertEqual(len(rows), 1)
+        self.assertIn("Mistral Test", rows[0]["title"])
+        self.assertEqual(rows[0]["release_kind"], "模型发布")
+
     def test_ai_relevance_filter_removes_unrelated_venture_story(self):
         briefing = DailyBriefing(dry_run=True)
 
@@ -690,6 +927,9 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertEqual(
             {item["section_key"] for item in queue},
             {"ai", "web3", "venture", "github"},
+        )
+        self.assertTrue(
+            any(item.get("signal_type") == "model_release" for item in queue)
         )
 
     def test_feedback_updates_future_ranking_with_bounded_adjustment(self):

@@ -20,6 +20,208 @@ sources:
     url: "https://export.arxiv.org/api/query"
     query: "cat:cs.AI OR cat:cs.CL OR cat:cs.LG"
   huggingface_models: "https://huggingface.co/api/models"
+  # 官方模型组织页：用于捕捉开源权重首发，链接直达厂商模型卡。
+  official_model_orgs:
+    - name: "OpenAI"
+      author: "openai"
+    - name: "Google"
+      author: "google"
+    - name: "Meta Llama"
+      author: "meta-llama"
+    - name: "Microsoft"
+      author: "microsoft"
+    - name: "NVIDIA"
+      author: "nvidia"
+    - name: "Ai2"
+      author: "allenai"
+    - name: "Qwen"
+      author: "Qwen"
+    - name: "DeepSeek"
+      author: "deepseek-ai"
+    - name: "Z.ai / GLM"
+      author: "zai-org"
+    - name: "Kimi"
+      author: "moonshotai"
+    - name: "MiniMax"
+      author: "MiniMaxAI"
+    - name: "Tencent Hunyuan"
+      author: "Tencent-Hunyuan"
+    - name: "ByteDance Seed"
+      author: "ByteDance-Seed"
+    - name: "StepFun"
+      author: "stepfun-ai"
+    - name: "Baichuan"
+      author: "baichuan-inc"
+    - name: "01.AI"
+      author: "01-ai"
+    - name: "Xiaomi MiMo"
+      author: "XiaomiMiMo"
+    - name: "InternLM"
+      author: "internlm"
+    - name: "Mistral AI"
+      author: "mistralai"
+    - name: "Cohere Labs"
+      author: "CohereLabs"
+    - name: "xAI"
+      author: "xai-org"
+    - name: "Perplexity"
+      author: "perplexity-ai"
+    - name: "Black Forest Labs"
+      author: "black-forest-labs"
+    - name: "Stability AI"
+      author: "stabilityai"
+    - name: "Amazon"
+      author: "amazon"
+    - name: "Meituan LongCat"
+      author: "meituan-longcat"
+    - name: "Kuaishou Kolors"
+      author: "Kwai-Kolors"
+    - {name: "IBM Granite", author: "ibm-granite"}
+    - {name: "Salesforce", author: "Salesforce"}
+    - {name: "Snowflake", author: "Snowflake"}
+    - {name: "Liquid AI", author: "LiquidAI"}
+    - {name: "Nous Research", author: "NousResearch"}
+    - {name: "Cerebras", author: "cerebras"}
+    - {name: "Prime Intellect", author: "PrimeIntellect"}
+    - {name: "OpenBMB / MiniCPM", author: "openbmb"}
+    - {name: "OpenGVLab / InternVL", author: "OpenGVLab"}
+    - {name: "BAAI", author: "BAAI"}
+    - {name: "Ant Ling", author: "inclusionAI"}
+    - {name: "Wan", author: "Wan-AI"}
+    - {name: "Skywork", author: "Skywork"}
+    - {name: "Inception", author: "inceptionai"}
+    - {name: "Together AI", author: "togethercomputer"}
+  # 没有稳定 RSS/API 的发布页会进入 Codex 精编包，由 Codex 做网页核验。
+  official_model_pages:
+    - {name: "OpenAI Model Release Notes", country: "US", url: "https://help.openai.com/en/articles/9624314-model-release-notes"}
+    - {name: "Anthropic News", country: "US", url: "https://www.anthropic.com/news"}
+    - {name: "Gemini API Release Notes", country: "US", url: "https://ai.google.dev/gemini-api/docs/changelog"}
+    - {name: "xAI News", country: "US", url: "https://x.ai/news"}
+    - {name: "Microsoft Foundry Models", country: "US", url: "https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-from-partners"}
+    - {name: "NVIDIA Models", country: "US", url: "https://build.nvidia.com/models"}
+    - {name: "Qwen Blog", country: "CN", url: "https://qwen.ai/blog"}
+    - {name: "DeepSeek API Updates", country: "CN", url: "https://api-docs.deepseek.com/updates/"}
+    - {name: "Z.ai New Releases", country: "CN", url: "https://docs.bigmodel.cn/cn/update/new-releases"}
+    - {name: "Kimi What's New", country: "CN", url: "https://www.kimi.com/code/docs/kimi-code/whats-new.html"}
+    - {name: "MiniMax News", country: "CN", url: "https://www.minimaxi.com/news"}
+    - {name: "Tencent Hunyuan", country: "CN", url: "https://hunyuan.tencent.com/"}
+    - {name: "ByteDance Seed Blog", country: "CN", url: "https://seed.bytedance.com/en/blog"}
+    - {name: "StepFun", country: "CN", url: "https://www.stepfun.com/"}
+    - {name: "Baidu ERNIE", country: "CN", url: "https://wenxin.baidu.com/"}
+    - {name: "Huawei Pangu", country: "CN", url: "https://www.huaweicloud.com/intl/en-us/product/pangu.html"}
+    - {name: "iFLYTEK Spark", country: "CN", url: "https://xinghuo.xfyun.cn/"}
+    - {name: "SenseTime News", country: "CN", url: "https://www.sensetime.com/cn/news"}
+  # AI 编程、Agent 与多模态产品的官方更新页。
+  official_product_pages:
+    - {name: "Claude Code Changelog", country: "US", category: "AI coding", url: "https://code.claude.com/docs/en/changelog"}
+    - {name: "Cursor Changelog", country: "US", category: "AI coding", url: "https://cursor.com/changelog"}
+    - {name: "Grok Release Notes", country: "US", category: "model/product", url: "https://docs.x.ai/developers/release-notes"}
+    - {name: "Perplexity Changelog", country: "US", category: "search/model", url: "https://docs.perplexity.ai/docs/resources/changelog"}
+    - {name: "GitHub Copilot Changelog", country: "US", category: "AI coding", url: "https://github.blog/changelog/label/copilot/"}
+    - {name: "Cognition Blog", country: "US", category: "agent", url: "https://cognition.com/blog"}
+    - {name: "Replit Updates", country: "US", category: "AI coding", url: "https://docs.replit.com/updates"}
+    - {name: "Amazon Nova", country: "US", category: "model", url: "https://aws.amazon.com/nova/"}
+    - {name: "Runway News", country: "US", category: "video model", url: "https://runway.com/news"}
+    - {name: "Stability AI News", country: "US", category: "image model", url: "https://stability.ai/news-updates"}
+    - {name: "Black Forest Labs Blog", country: "US", category: "image model", url: "https://bfl.ai/blog"}
+    - {name: "Midjourney Updates", country: "US", category: "image model", url: "https://updates.midjourney.com/"}
+    - {name: "Luma News", country: "US", category: "video model", url: "https://lumalabs.ai/news"}
+    - {name: "Pika", country: "US", category: "video model", url: "https://pika.art/"}
+    - {name: "Adobe Firefly", country: "US", category: "creative model", url: "https://helpx.adobe.com/firefly/whats-new.html"}
+    - {name: "Together AI Blog", country: "US", category: "model platform", url: "https://www.together.ai/blog"}
+    - {name: "Manus Blog", country: "CN", category: "agent", url: "https://manus.im/blog"}
+    - {name: "Kling AI", country: "CN", category: "video model", url: "https://kling.ai/"}
+    - {name: "Vidu", country: "CN", category: "video model", url: "https://www.vidu.com/"}
+    - {name: "Meituan LongCat", country: "CN", category: "model", url: "https://longcat.chat/"}
+    - {name: "IBM Granite", country: "US", category: "model", url: "https://www.ibm.com/granite"}
+    - {name: "Salesforce AI Research", country: "US", category: "model research", url: "https://www.salesforce.com/ai-research/"}
+    - {name: "Snowflake Cortex", country: "US", category: "model/platform", url: "https://www.snowflake.com/en/product/features/cortex/"}
+    - {name: "Liquid AI Models", country: "US", category: "model", url: "https://www.liquid.ai/news/models"}
+    - {name: "Nous Research", country: "US", category: "open model", url: "https://nousresearch.com/"}
+    - {name: "Cerebras Blog", country: "US", category: "model/infrastructure", url: "https://www.cerebras.ai/blog"}
+    - {name: "Prime Intellect Blog", country: "US", category: "open model", url: "https://www.primeintellect.ai/blog"}
+    - {name: "ElevenLabs Changelog", country: "US", category: "audio model", url: "https://elevenlabs.io/docs/changelog"}
+    - {name: "Ideogram Updates", country: "US", category: "image model", url: "https://ideogram.ai/features/"}
+    - {name: "Suno Blog", country: "US", category: "music model", url: "https://suno.com/blog"}
+    - {name: "Inception", country: "US", category: "diffusion language model", url: "https://www.inceptionlabs.ai/"}
+    - {name: "OpenRouter Changelog", country: "US", category: "model platform", url: "https://openrouter.ai/changelog"}
+    - {name: "OpenBMB", country: "CN", category: "open model", url: "https://www.openbmb.cn/"}
+    - {name: "BAAI", country: "CN", category: "model research", url: "https://www.baai.ac.cn/zh-cn/"}
+    - {name: "Ant Ling", country: "CN", category: "model", url: "https://inclusion.ai/"}
+    - {name: "Wan", country: "CN", category: "video model", url: "https://wan.video/"}
+    - {name: "Skywork", country: "CN", category: "model", url: "https://skywork.ai/"}
+  # 官方 X 账号：官网/模型卡负责确认，X 用于捕捉首发、预告和产品更新。
+  official_x_accounts:
+    - {name: "OpenAI", handle: "OpenAI", country: "US"}
+    - {name: "Anthropic", handle: "AnthropicAI", country: "US"}
+    - {name: "Google DeepMind", handle: "GoogleDeepMind", country: "US"}
+    - {name: "Meta AI", handle: "AIatMeta", country: "US"}
+    - {name: "xAI", handle: "SpaceXAI", country: "US"}
+    - {name: "Microsoft AI", handle: "MicrosoftAI", country: "US"}
+    - {name: "NVIDIA AI", handle: "NVIDIAAI", country: "US"}
+    - {name: "Ai2", handle: "allen_ai", country: "US"}
+    - {name: "Qwen", handle: "Alibaba_Qwen", country: "CN"}
+    - {name: "DeepSeek", handle: "deepseek_ai", country: "CN"}
+    - {name: "Z.ai / GLM", handle: "Zai_org", country: "CN"}
+    - {name: "Kimi", handle: "Kimi_Moonshot", country: "CN"}
+    - {name: "MiniMax", handle: "MiniMax_AI", country: "CN"}
+    - {name: "StepFun", handle: "StepFun_ai", country: "CN"}
+    - {name: "ByteDance Seed", handle: "ByteDanceSeed", country: "CN"}
+    - {name: "Tencent Hunyuan", handle: "TencentHunyuan", country: "CN"}
+    - {name: "Baidu", handle: "Baidu_Inc", country: "CN"}
+    - {name: "01.AI", handle: "01AI_Yi", country: "CN"}
+    - {name: "Baichuan AI", handle: "BaichuanAI", country: "CN"}
+    - {name: "Huawei Cloud / Pangu", handle: "HuaweiCloud1", country: "CN"}
+    - {name: "SenseTime", handle: "SenseTimeGroup", country: "CN"}
+    - {name: "Mistral AI", handle: "MistralAI", country: "FR"}
+    - {name: "Cohere", handle: "cohere", country: "CA"}
+    - {name: "Claude", handle: "ClaudeAI", country: "US", category: "model/product"}
+    - {name: "Grok", handle: "grok", country: "US", category: "model/product"}
+    - {name: "Cursor", handle: "cursor_ai", country: "US", category: "AI coding"}
+    - {name: "Perplexity", handle: "perplexity_ai", country: "US", category: "search/model"}
+    - {name: "GitHub Copilot", handle: "GitHubCopilot", country: "US", category: "AI coding"}
+    - {name: "Cognition", handle: "cognition_labs", country: "US", category: "agent"}
+    - {name: "Replit", handle: "Replit", country: "US", category: "AI coding"}
+    - {name: "Amazon Web Services", handle: "AWSCloud", country: "US", category: "model/platform"}
+    - {name: "Runway", handle: "runwayml", country: "US", category: "video model"}
+    - {name: "Stability AI", handle: "StabilityAI", country: "US", category: "image model"}
+    - {name: "Black Forest Labs", handle: "bfl_ai", country: "US", category: "image model"}
+    - {name: "Midjourney", handle: "midjourney", country: "US", category: "image model"}
+    - {name: "Luma", handle: "LumaLabsAI", country: "US", category: "video model"}
+    - {name: "Pika", handle: "pika_labs", country: "US", category: "video model"}
+    - {name: "Adobe Firefly", handle: "AdobeFirefly", country: "US", category: "creative model"}
+    - {name: "Together AI", handle: "togethercompute", country: "US", category: "model platform"}
+    - {name: "Manus", handle: "ManusAI", country: "CN", category: "agent"}
+    - {name: "Kling AI", handle: "Kling_ai", country: "CN", category: "video model"}
+    - {name: "Vidu", handle: "ViduAI_official", country: "CN", category: "video model"}
+    - {name: "Meituan LongCat", handle: "Meituan_LongCat", country: "CN", category: "model"}
+    - {name: "IBM Research", handle: "IBMResearch", country: "US", category: "model research"}
+    - {name: "Salesforce Developers", handle: "SalesforceDevs", country: "US", category: "model/platform"}
+    - {name: "Snowflake", handle: "SnowflakeDB", country: "US", category: "model/platform"}
+    - {name: "Liquid AI", handle: "LiquidAI", country: "US", category: "model"}
+    - {name: "Nous Research", handle: "NousResearch", country: "US", category: "open model"}
+    - {name: "Cerebras", handle: "Cerebras", country: "US", category: "model/infrastructure"}
+    - {name: "Prime Intellect", handle: "PrimeIntellect", country: "US", category: "open model"}
+    - {name: "ElevenLabs", handle: "ElevenLabs", country: "US", category: "audio model"}
+    - {name: "Ideogram", handle: "ideogram_ai", country: "US", category: "image model"}
+    - {name: "Suno", handle: "suno_ai_", country: "US", category: "music model"}
+    - {name: "Inception", handle: "_inception_ai", country: "US", category: "diffusion language model"}
+    - {name: "Hugging Face", handle: "huggingface", country: "US", category: "model ecosystem"}
+    - {name: "OpenRouter", handle: "OpenRouter", country: "US", category: "model platform"}
+    - {name: "OpenBMB", handle: "OpenBMB", country: "CN", category: "open model"}
+    - {name: "BAAI", handle: "BAAIBeijing", country: "CN", category: "model research"}
+    - {name: "Ant Ling", handle: "AntLingAGI", country: "CN", category: "model"}
+    - {name: "Wan", handle: "Alibaba_Wan", country: "CN", category: "video model"}
+    - {name: "Skywork", handle: "Skywork_ai", country: "CN", category: "model"}
+  # 厂商官方模型发布记录：优先于媒体转述。
+  model_changelogs:
+    - name: "Mistral AI"
+      url: "https://docs.mistral.ai/resources/changelogs"
+      parser: "mistral"
+    - name: "QwenCloud"
+      url: "https://docs.qwencloud.com/changelog/models"
+      parser: "qwen"
+      include_prefixes: ["qwen", "wan"]
   aihot: "https://aihot.today/ai-news"
   official_sitemaps:
     - name: "Anthropic"
@@ -51,6 +253,11 @@ limits:
   hacker_news: 5
   arxiv: 4
   huggingface_models: 4
+  official_model_releases_per_org: 2
+  model_changelog_per_source: 3
+  model_releases: 8
+  official_x_updates: 12
+  official_social_updates: 8
   aihot: 5
   official_sitemaps_per_source: 3
   github_releases_per_repo: 1
@@ -68,6 +275,8 @@ request:
 # 内容质量控制：限制过旧官方更新，并合并同一事件的重复报道。
 quality:
   max_feed_age_days: 10
+  model_release_max_age_days: 14
+  official_x_lookback_hours: 48
   similarity_threshold: 0.76
   min_similarity_tokens: 4
 
@@ -96,7 +305,7 @@ personalization:
       reason: "能连接到 B 端服务、企业提效或工作流改造，适合发展成案例、咨询或产品 demo。"
     - label: "模型竞争格局"
       weight: 18
-      keywords: ["openai", "anthropic", "claude", "google", "gemini", "deepmind", "mistral", "meta", "llama", "microsoft", "copilot", "xai", "grok"]
+      keywords: ["openai", "anthropic", "claude", "google", "gemini", "deepmind", "mistral", "meta", "llama", "microsoft", "copilot", "xai", "grok", "qwen", "deepseek"]
       reason: "适合判断模型公司格局、生态路线和未来内容叙事，不只盯单个产品更新。"
     - label: "AI 自媒体信息差"
       weight: 20

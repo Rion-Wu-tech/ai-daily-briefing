@@ -10,7 +10,7 @@ tags: [daily, briefing, news, ai, web3, github, rion]
 
 ## 触发条件
 
-- 用户说「给我今日早报」「生成早报」「daily briefing」
+- 用户说「给我今日早报」「生成早报」「最新模型发布」「daily briefing」
 - 定时任务需要生成每日 AI/Web3 简报
 - 需要把当天热点整理成中文自媒体选题
 
@@ -47,12 +47,14 @@ python briefing.py --format text
 ## 输出结构
 
 1. 相比昨天的新变化
-2. 今日必须看
-3. 适合发 X 的选题
-4. B端/商业机会
-5. 持续跟踪
-6. X 草稿
-7. AI / Web3 / 投资 / GitHub 明细
+2. 最新模型发布
+3. 模型公司官方账号动态
+4. 今日必须看
+5. 适合发 X 的选题
+6. B端/商业机会
+7. 持续跟踪
+8. X 草稿
+9. AI / Web3 / 投资 / GitHub 明细
 
 ## 反馈闭环
 
@@ -90,6 +92,10 @@ python briefing.py --weekly-review
 ## 数据源
 
 - AI 热点：TechCrunch + OpenAI、Google DeepMind、Hugging Face 官方 RSS
+- 模型发布：厂商官方 RSS/Sitemap/Changelog、18 个基础模型发布页，以及 42 个中美为主的官方 Hugging Face 组织页
+- 官方账号：61 个中美模型公司和 AI 产品 X 官方账号；有 X API 时自动抓取，否则由 Codex 按清单联网检索
+- AI 编程/Agent：Claude Code、Codex、Cursor、GitHub Copilot、Cognition/Devin、Replit 等官方 Changelog、Release 与 X 账号
+- 多模态模型：Runway、Stability AI、Black Forest Labs、Midjourney、Luma、Pika、Kling、Vidu 等官方发布页与 X 账号
 - 补充信号：Hacker News、arXiv、Hugging Face Trending、AI HOT
 - 官方追踪：Anthropic sitemap、指定 GitHub Releases
 - Web3 热点：CoinDesk
@@ -99,3 +105,5 @@ python briefing.py --weekly-review
 数据源和数量限制在 `config.yaml` 中维护。
 
 生成时会过滤明显跑题的 AI 新闻，并按 URL 与标题相似度合并同一事件；媒体和官方来源交替混排，某个源失败不会影响其他板块。
+
+模型发布必须以厂商官网、官方 Changelog、官方模型卡或官方 Release 为确认依据。媒体报道只能补充影响，不得替代第一手发布链接；本轮没有官方发布时要明确说明，不能用传闻或旧模型填充。

@@ -16,6 +16,14 @@ $daily-briefing 生成今日早报
 
 Codex 会调用 [skills/daily-briefing/SKILL.md](./skills/daily-briefing/SKILL.md)，先生成结构化候选包，再由当前模型完成最终选稿和中文编排，保存为 `outputs/briefing_YYYY-MM-DD.md`。整个流程不依赖 Hermes 或 Telegram。
 
+也可以只追踪第一手模型发布：
+
+```text
+$daily-briefing 检索最近 24 小时最新模型发布，只看官方来源
+```
+
+Skill 会先检查厂商官网、官方更新日志、官方模型卡、官方 Releases 和中美主要模型/Agent 产品的 X 官方账号，再处理媒体热点；二手报道不能代替模型发布源。没有配置 X API 时，Codex 会按精编包中的账号清单直接联网检索。Claude Code、Codex、Cursor、Copilot 等产品更新从 `sections.official_product_watchlist` 单独核验，避免和基础模型发布混为一谈。
+
 ## 1. 安装依赖
 
 ```bash
@@ -33,7 +41,7 @@ python briefing.py --dry-run --no-save
 python -m unittest discover -s tests
 ```
 
-看到 `Rion 每日早报`、`今日必须看`、`适合发 X`、`B端/商业机会`、`AI 热点` 和 `GitHub 优质项目`，就说明基础链路正常。
+看到 `Rion 每日早报`、`最新模型发布`、`今日必须看`、`适合发 X`、`B端/商业机会`、`AI 热点` 和 `GitHub 优质项目`，就说明基础链路正常。
 
 ## 3. 真实抓取
 
@@ -41,7 +49,7 @@ python -m unittest discover -s tests
 python briefing.py
 ```
 
-默认会保存到 `outputs/briefing_YYYY-MM-DD.md`，里面的新闻标题和项目名都是可点击链接。候选池包含媒体、官方 RSS/sitemap、Hacker News、arXiv、Hugging Face Trending、AI HOT 和指定 GitHub Releases。输出会给出跨日变化、五维评分、可信度分层、商业机会和三种 X 草稿。
+默认会保存到 `outputs/briefing_YYYY-MM-DD.md`，里面的新闻标题和项目名都是可点击链接。候选池包含厂商官方模型发布源、AI 编程/Agent 产品 Changelog、模型公司与产品 X 官方账号、媒体、官方 RSS/sitemap、Hacker News、arXiv、Hugging Face Trending、AI HOT 和指定 GitHub Releases。输出会给出最新模型发布、官方账号动态、跨日变化、五维评分、可信度分层、商业机会和三种 X 草稿。
 
 Skill 内部使用的两阶段精编命令：
 
@@ -49,7 +57,7 @@ Skill 内部使用的两阶段精编命令：
 python briefing.py --editorial-packet --output-file outputs/editorial_packet.json
 ```
 
-读取 `sections.editorial_queue`，由当前 Codex 模型完成最终选稿与中文改写。只允许基于候选包事实写作，必须保留原始链接。CLI 的 Markdown 是无模型环境下的确定性兜底。
+先读取 `sections.model_releases`，再读取 `sections.editorial_queue`，由当前 Codex 模型完成最终选稿与中文改写。只允许基于候选包事实写作，必须保留原始链接。CLI 的 Markdown 是无模型环境下的确定性兜底。
 
 常用变体：
 

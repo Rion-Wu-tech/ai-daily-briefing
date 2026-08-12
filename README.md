@@ -28,6 +28,7 @@ $daily-briefing 生成今日早报
 
 ```text
 $daily-briefing 检索过去 48 小时 AI 赛道爆火热点
+$daily-briefing 检索最近 24 小时最新模型发布，只看官方来源
 $daily-briefing 生成本周简报复盘
 ```
 
@@ -48,6 +49,12 @@ outputs/briefing_YYYY-MM-DD.md
 ## 功能
 
 - AI 热点：TechCrunch、OpenAI、Google DeepMind、Hugging Face 官方更新
+- 最新模型发布：独立追踪厂商官网、官方 Changelog、官方模型卡与开源权重首发
+- 官方模型组织：42 个官方 Hugging Face 组织，重点覆盖中美活跃模型团队
+- 官方发布页：18 个基础模型发布页 + 37 个 AI 编程、Agent、多模态和模型平台更新页
+- 官方账号雷达：61 个模型公司与 AI 产品 X 官方账号；Codex 可直接检索，配置 X API 后 Python 也能自动抓取
+- AI 编程/Agent：单独跟踪 Claude Code、Codex、Cursor、Copilot、Cognition/Devin、Replit、Manus
+- 多模态模型：单独跟踪 Runway、Stability AI、FLUX、Midjourney、Luma、Pika、Kling、Vidu
 - 补充信号：Hacker News、arXiv、Hugging Face Trending、AI HOT 精选
 - 官方追踪：Anthropic sitemap，以及 Codex、Claude Code、Gemini CLI、Transformers Releases
 - Web3 热点：CoinDesk 最新加密新闻
@@ -56,7 +63,7 @@ outputs/briefing_YYYY-MM-DD.md
 - 今日选题素材：把热点转成中文内容选题
 - Codex 友好：支持 `--dry-run` 离线验证、单元测试和稳定输出目录
 - 每条新闻/项目都会跟一行简短中文解释，排版保持干净，不额外加标签
-- 开头自动生成 `相比昨天的新变化`、`今日必须看`、`适合发 X`、`B端/商业机会` 和 `持续跟踪`
+- 开头自动生成 `相比昨天的新变化`、`最新模型发布`、`今日必须看`、`适合发 X`、`B端/商业机会` 和 `持续跟踪`
 - 用内容价值、商业价值、个人匹配、时效、可信度五个维度排序，综合分最高 96，避免大量虚高满分
 - 可信度区分 `官方确认`、`多源印证`、`单源信号`
 - X 草稿覆盖单帖、thread、视觉/视频脚本三种形态
@@ -69,6 +76,31 @@ outputs/briefing_YYYY-MM-DD.md
 - 自动过滤 AI 板块跑题内容，并合并同一链接或相似标题的重复报道
 - 媒体与官方源交替混排，单个来源失败时保留其他可用板块
 - 早报结尾自动生成简短的中英双语 Star 引导，并保留唯一的官方仓库链接
+
+## 当前官方覆盖
+
+| 区域 | 模型组织/发布源 | X 官方账号 |
+| --- | --- | --- |
+| 美国 | OpenAI、Anthropic/Claude、Google DeepMind、Meta AI/Llama、xAI/Grok、Microsoft AI/Phi、NVIDIA、Ai2、Amazon Nova、Perplexity、IBM Granite、Salesforce、Snowflake、Liquid AI、Nous Research、Cerebras、Prime Intellect、Inception、Stability AI、Black Forest Labs | `@OpenAI`、`@AnthropicAI`、`@claudeai`、`@GoogleDeepMind`、`@AIatMeta`、`@SpaceXAI`、`@grok`、`@MicrosoftAI`、`@NVIDIAAI`、`@allen_ai`、`@AWSCloud`、`@perplexity_ai`、`@IBMResearch`、`@SalesforceDevs`、`@SnowflakeDB`、`@LiquidAI`、`@NousResearch`、`@Cerebras`、`@PrimeIntellect`、`@_inception_ai`、`@StabilityAI`、`@bfl_ai` |
+| 中国 | Qwen、DeepSeek、Z.ai/GLM、Kimi、MiniMax、腾讯混元、字节 Seed、阶跃星辰、百川、01.AI、小米 MiMo、InternLM、百度文心、华为盘古、讯飞星火、商汤日日新、美团 LongCat、快手 Kolors、OpenBMB/MiniCPM、OpenGVLab/InternVL、BAAI、Ant Ling、Wan、Skywork | `@Alibaba_Qwen`、`@deepseek_ai`、`@Zai_org`、`@Kimi_Moonshot`、`@MiniMax_AI`、`@StepFun_ai`、`@ByteDanceSeed`、`@TencentHunyuan`、`@Baidu_Inc`、`@01AI_Yi`、`@BaichuanAI`、`@HuaweiCloud1`、`@SenseTimeGroup`、`@Meituan_LongCat`、`@OpenBMB`、`@BAAIBeijing`、`@AntLingAGI`、`@Alibaba_Wan`、`@Skywork_ai` |
+| 其他 | Mistral AI、Cohere Labs | `@MistralAI`、`@cohere` |
+
+| 产品方向 | 官方发布源 | X 官方账号 |
+| --- | --- | --- |
+| AI 编程/Agent | Claude Code、OpenAI Codex、Cursor、GitHub Copilot、Cognition/Devin、Replit、Manus | `@claudeai`、`@OpenAI`、`@cursor_ai`、`@GitHubCopilot`、`@cognition_labs`、`@Replit`、`@ManusAI` |
+| 多模态模型 | Runway、Stability AI、Black Forest Labs/FLUX、Midjourney、Ideogram、Luma、Pika、Adobe Firefly、Kling、Vidu、Wan | `@runwayml`、`@StabilityAI`、`@bfl_ai`、`@midjourney`、`@ideogram_ai`、`@LumaLabsAI`、`@pika_labs`、`@AdobeFirefly`、`@Kling_ai`、`@ViduAI_official`、`@Alibaba_Wan` |
+| 音频/音乐模型 | ElevenLabs、Suno | `@ElevenLabs`、`@suno_ai_` |
+| 模型平台/生态 | Hugging Face、OpenRouter、Together AI、Snowflake Cortex、Salesforce AI | `@huggingface`、`@OpenRouter`、`@togethercompute`、`@SnowflakeDB`、`@SalesforceDevs` |
+
+官网、Changelog 和模型卡用于确认事实；X 用于捕捉首发、预告、API/价格变更和产品动态。没有配置 X API 时，Codex 会读取精编包中的账号清单并联网检索，不影响直接调用。
+
+若希望本地 Python 自动抓取全部官方账号，可选配置环境变量：
+
+```bash
+export X_BEARER_TOKEN="你的 X API Bearer Token"
+```
+
+不要把 Token 写进 `config.yaml` 或提交到 Git。
 
 ## 快速开始
 
@@ -177,6 +209,22 @@ sources:
     url: "https://export.arxiv.org/api/query"
     query: "cat:cs.AI OR cat:cs.CL OR cat:cs.LG"
   huggingface_models: "https://huggingface.co/api/models"
+  official_model_orgs:
+    - name: "OpenAI"
+      author: "openai"
+    - name: "Meta Llama"
+      author: "meta-llama"
+    - name: "Qwen"
+      author: "Qwen"
+    - name: "DeepSeek"
+      author: "deepseek-ai"
+  model_changelogs:
+    - name: "Mistral AI"
+      url: "https://docs.mistral.ai/resources/changelogs"
+      parser: "mistral"
+    - name: "QwenCloud"
+      url: "https://docs.qwencloud.com/changelog/models"
+      parser: "qwen"
   aihot: "https://aihot.today/ai-news"
 
 output:
@@ -187,6 +235,9 @@ output:
 limits:
   ai_news: 10
   ai_official_per_source: 3
+  official_model_releases_per_org: 2
+  model_changelog_per_source: 3
+  model_releases: 8
   web3_news: 3
   venture_news: 5
   github_projects: 10
@@ -194,6 +245,7 @@ limits:
 
 quality:
   max_feed_age_days: 10
+  model_release_max_age_days: 14
   similarity_threshold: 0.76
   min_similarity_tokens: 4
 
@@ -214,6 +266,8 @@ history:
 
 ```text
 相比昨天的新变化
+最新模型发布
+模型公司官方账号动态
 今日必须看
 适合发 X 的选题
 B端/商业机会

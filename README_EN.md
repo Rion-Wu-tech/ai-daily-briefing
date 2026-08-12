@@ -28,6 +28,7 @@ You can also specify the scope:
 
 ```text
 $daily-briefing Find the hottest AI topics from the past 48 hours
+$daily-briefing Find model releases from the past 24 hours using official sources only
 $daily-briefing Generate this week's briefing review
 ```
 
@@ -48,6 +49,12 @@ If a Skill with the same name already exists, explicitly back it up and replace 
 ## Features
 
 - AI news from TechCrunch plus official OpenAI, Google DeepMind, and Hugging Face updates
+- A dedicated latest-model section backed by vendor sites, official changelogs, official model cards, and first-party open-weight releases
+- Tracking for 42 official Hugging Face organizations, focused on active US and China model teams
+- 18 foundation-model release pages plus 37 official update pages for coding, agents, multimodal models, and model platforms
+- An official-account radar for 61 model-company and AI-product X accounts; Codex can search them directly, while Python can use the optional X API integration
+- Dedicated AI coding and agent coverage for Claude Code, Codex, Cursor, Copilot, Cognition/Devin, Replit, and Manus
+- Dedicated multimodal coverage for Runway, Stability AI, FLUX, Midjourney, Luma, Pika, Kling, and Vidu
 - Additional signals from Hacker News, arXiv, Hugging Face Trending, and AI HOT
 - Official tracking through the Anthropic sitemap and releases from Codex, Claude Code, Gemini CLI, and Transformers
 - Web3 news from CoinDesk
@@ -56,7 +63,7 @@ If a Skill with the same name already exists, explicitly back it up and replace 
 - Daily topic ideas that turn news into publishable Chinese content angles
 - Codex-friendly offline validation with `--dry-run`, unit tests, and stable output paths
 - A concise Chinese explanation for every news item and project, without repetitive labels
-- Opening sections for changes since yesterday, must-read items, X opportunities, B2B opportunities, and watchlist signals
+- Opening sections for changes since yesterday, latest model releases, must-read items, X opportunities, B2B opportunities, and watchlist signals
 - Ranking across content value, business value, personal relevance, timeliness, and credibility, with calibrated scores instead of inflated perfect ratings
 - Confidence labels: `Officially confirmed`, `Corroborated by multiple sources`, and `Single-source signal`
 - X drafts in three formats: single post, thread, and visual/video script
@@ -69,6 +76,31 @@ If a Skill with the same name already exists, explicitly back it up and replace 
 - Automatic filtering of off-topic AI stories and merging of duplicate links or similar headlines
 - Alternating media and official sources, with graceful degradation when one source fails
 - A concise bilingual Star invitation at the end of each briefing, using the single canonical repository link
+
+## Current First-Party Coverage
+
+| Region | Model organizations and release sources | Official X accounts |
+| --- | --- | --- |
+| United States | OpenAI, Anthropic/Claude, Google DeepMind, Meta AI/Llama, xAI/Grok, Microsoft AI/Phi, NVIDIA, Ai2, Amazon Nova, Perplexity, IBM Granite, Salesforce, Snowflake, Liquid AI, Nous Research, Cerebras, Prime Intellect, Inception, Stability AI, and Black Forest Labs | `@OpenAI`, `@AnthropicAI`, `@claudeai`, `@GoogleDeepMind`, `@AIatMeta`, `@SpaceXAI`, `@grok`, `@MicrosoftAI`, `@NVIDIAAI`, `@allen_ai`, `@AWSCloud`, `@perplexity_ai`, `@IBMResearch`, `@SalesforceDevs`, `@SnowflakeDB`, `@LiquidAI`, `@NousResearch`, `@Cerebras`, `@PrimeIntellect`, `@_inception_ai`, `@StabilityAI`, `@bfl_ai` |
+| China | Qwen, DeepSeek, Z.ai/GLM, Kimi, MiniMax, Tencent Hunyuan, ByteDance Seed, StepFun, Baichuan, 01.AI, Xiaomi MiMo, InternLM, Baidu ERNIE, Huawei Pangu, iFLYTEK Spark, SenseNova, Meituan LongCat, Kuaishou Kolors, OpenBMB/MiniCPM, OpenGVLab/InternVL, BAAI, Ant Ling, Wan, and Skywork | `@Alibaba_Qwen`, `@deepseek_ai`, `@Zai_org`, `@Kimi_Moonshot`, `@MiniMax_AI`, `@StepFun_ai`, `@ByteDanceSeed`, `@TencentHunyuan`, `@Baidu_Inc`, `@01AI_Yi`, `@BaichuanAI`, `@HuaweiCloud1`, `@SenseTimeGroup`, `@Meituan_LongCat`, `@OpenBMB`, `@BAAIBeijing`, `@AntLingAGI`, `@Alibaba_Wan`, `@Skywork_ai` |
+| Other | Mistral AI and Cohere Labs | `@MistralAI`, `@cohere` |
+
+| Product group | Official release sources | Official X accounts |
+| --- | --- | --- |
+| AI coding and agents | Claude Code, OpenAI Codex, Cursor, GitHub Copilot, Cognition/Devin, Replit, and Manus | `@claudeai`, `@OpenAI`, `@cursor_ai`, `@GitHubCopilot`, `@cognition_labs`, `@Replit`, `@ManusAI` |
+| Multimodal models | Runway, Stability AI, Black Forest Labs/FLUX, Midjourney, Ideogram, Luma, Pika, Adobe Firefly, Kling, Vidu, and Wan | `@runwayml`, `@StabilityAI`, `@bfl_ai`, `@midjourney`, `@ideogram_ai`, `@LumaLabsAI`, `@pika_labs`, `@AdobeFirefly`, `@Kling_ai`, `@ViduAI_official`, `@Alibaba_Wan` |
+| Audio and music models | ElevenLabs and Suno | `@ElevenLabs`, `@suno_ai_` |
+| Model platforms and ecosystem | Hugging Face, OpenRouter, Together AI, Snowflake Cortex, and Salesforce AI | `@huggingface`, `@OpenRouter`, `@togethercompute`, `@SnowflakeDB`, `@SalesforceDevs` |
+
+Vendor pages, changelogs, and model cards confirm facts. X is the fast layer for launches, previews, API or pricing notices, and product updates. Without X API credentials, Codex searches the configured account watchlist during the editorial pass.
+
+To let local Python fetch official-account posts automatically, optionally set:
+
+```bash
+export X_BEARER_TOKEN="your X API bearer token"
+```
+
+Never place the token in `config.yaml` or commit it to Git.
 
 ## Quick Start
 
@@ -177,6 +209,22 @@ sources:
     url: "https://export.arxiv.org/api/query"
     query: "cat:cs.AI OR cat:cs.CL OR cat:cs.LG"
   huggingface_models: "https://huggingface.co/api/models"
+  official_model_orgs:
+    - name: "OpenAI"
+      author: "openai"
+    - name: "Meta Llama"
+      author: "meta-llama"
+    - name: "Qwen"
+      author: "Qwen"
+    - name: "DeepSeek"
+      author: "deepseek-ai"
+  model_changelogs:
+    - name: "Mistral AI"
+      url: "https://docs.mistral.ai/resources/changelogs"
+      parser: "mistral"
+    - name: "QwenCloud"
+      url: "https://docs.qwencloud.com/changelog/models"
+      parser: "qwen"
   aihot: "https://aihot.today/ai-news"
 
 output:
@@ -187,6 +235,9 @@ output:
 limits:
   ai_news: 10
   ai_official_per_source: 3
+  official_model_releases_per_org: 2
+  model_changelog_per_source: 3
+  model_releases: 8
   web3_news: 3
   venture_news: 5
   github_projects: 10
@@ -194,6 +245,7 @@ limits:
 
 quality:
   max_feed_age_days: 10
+  model_release_max_age_days: 14
   similarity_threshold: 0.76
   min_similarity_tokens: 4
 
@@ -214,6 +266,8 @@ Default Markdown structure:
 
 ```text
 Changes Since Yesterday
+Latest Model Releases
+Official Model-Company Accounts
 Must Read
 Suitable for X
 B2B / Business Opportunities

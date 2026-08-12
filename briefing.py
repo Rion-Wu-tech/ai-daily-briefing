@@ -11,8 +11,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 from difflib import SequenceMatcher
@@ -64,6 +66,185 @@ DEFAULT_CONFIG: Dict[str, Any] = {
             "query": "cat:cs.AI OR cat:cs.CL OR cat:cs.LG",
         },
         "huggingface_models": "https://huggingface.co/api/models",
+        "official_model_orgs": [
+            {"name": "OpenAI", "author": "openai"},
+            {"name": "Google", "author": "google"},
+            {"name": "Meta Llama", "author": "meta-llama"},
+            {"name": "Microsoft", "author": "microsoft"},
+            {"name": "NVIDIA", "author": "nvidia"},
+            {"name": "Ai2", "author": "allenai"},
+            {"name": "Qwen", "author": "Qwen"},
+            {"name": "DeepSeek", "author": "deepseek-ai"},
+            {"name": "Z.ai / GLM", "author": "zai-org"},
+            {"name": "Kimi", "author": "moonshotai"},
+            {"name": "MiniMax", "author": "MiniMaxAI"},
+            {"name": "Tencent Hunyuan", "author": "Tencent-Hunyuan"},
+            {"name": "ByteDance Seed", "author": "ByteDance-Seed"},
+            {"name": "StepFun", "author": "stepfun-ai"},
+            {"name": "Baichuan", "author": "baichuan-inc"},
+            {"name": "01.AI", "author": "01-ai"},
+            {"name": "Xiaomi MiMo", "author": "XiaomiMiMo"},
+            {"name": "InternLM", "author": "internlm"},
+            {"name": "Mistral AI", "author": "mistralai"},
+            {"name": "Cohere Labs", "author": "CohereLabs"},
+            {"name": "xAI", "author": "xai-org"},
+            {"name": "Perplexity", "author": "perplexity-ai"},
+            {"name": "Black Forest Labs", "author": "black-forest-labs"},
+            {"name": "Stability AI", "author": "stabilityai"},
+            {"name": "Amazon", "author": "amazon"},
+            {"name": "Meituan LongCat", "author": "meituan-longcat"},
+            {"name": "Kuaishou Kolors", "author": "Kwai-Kolors"},
+            {"name": "IBM Granite", "author": "ibm-granite"},
+            {"name": "Salesforce", "author": "Salesforce"},
+            {"name": "Snowflake", "author": "Snowflake"},
+            {"name": "Liquid AI", "author": "LiquidAI"},
+            {"name": "Nous Research", "author": "NousResearch"},
+            {"name": "Cerebras", "author": "cerebras"},
+            {"name": "Prime Intellect", "author": "PrimeIntellect"},
+            {"name": "OpenBMB / MiniCPM", "author": "openbmb"},
+            {"name": "OpenGVLab / InternVL", "author": "OpenGVLab"},
+            {"name": "BAAI", "author": "BAAI"},
+            {"name": "Ant Ling", "author": "inclusionAI"},
+            {"name": "Wan", "author": "Wan-AI"},
+            {"name": "Skywork", "author": "Skywork"},
+            {"name": "Inception", "author": "inceptionai"},
+            {"name": "Together AI", "author": "togethercomputer"},
+        ],
+        "official_model_pages": [
+            {"name": "OpenAI Model Release Notes", "country": "US", "url": "https://help.openai.com/en/articles/9624314-model-release-notes"},
+            {"name": "Anthropic News", "country": "US", "url": "https://www.anthropic.com/news"},
+            {"name": "Gemini API Release Notes", "country": "US", "url": "https://ai.google.dev/gemini-api/docs/changelog"},
+            {"name": "xAI News", "country": "US", "url": "https://x.ai/news"},
+            {"name": "Microsoft Foundry Models", "country": "US", "url": "https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-from-partners"},
+            {"name": "NVIDIA Models", "country": "US", "url": "https://build.nvidia.com/models"},
+            {"name": "Qwen Blog", "country": "CN", "url": "https://qwen.ai/blog"},
+            {"name": "DeepSeek API Updates", "country": "CN", "url": "https://api-docs.deepseek.com/updates/"},
+            {"name": "Z.ai New Releases", "country": "CN", "url": "https://docs.bigmodel.cn/cn/update/new-releases"},
+            {"name": "Kimi What's New", "country": "CN", "url": "https://www.kimi.com/code/docs/kimi-code/whats-new.html"},
+            {"name": "MiniMax News", "country": "CN", "url": "https://www.minimaxi.com/news"},
+            {"name": "Tencent Hunyuan", "country": "CN", "url": "https://hunyuan.tencent.com/"},
+            {"name": "ByteDance Seed Blog", "country": "CN", "url": "https://seed.bytedance.com/en/blog"},
+            {"name": "StepFun", "country": "CN", "url": "https://www.stepfun.com/"},
+            {"name": "Baidu ERNIE", "country": "CN", "url": "https://wenxin.baidu.com/"},
+            {"name": "Huawei Pangu", "country": "CN", "url": "https://www.huaweicloud.com/intl/en-us/product/pangu.html"},
+            {"name": "iFLYTEK Spark", "country": "CN", "url": "https://xinghuo.xfyun.cn/"},
+            {"name": "SenseTime News", "country": "CN", "url": "https://www.sensetime.com/cn/news"},
+        ],
+        "official_product_pages": [
+            {"name": "Claude Code Changelog", "country": "US", "category": "AI coding", "url": "https://code.claude.com/docs/en/changelog"},
+            {"name": "Cursor Changelog", "country": "US", "category": "AI coding", "url": "https://cursor.com/changelog"},
+            {"name": "Grok Release Notes", "country": "US", "category": "model/product", "url": "https://docs.x.ai/developers/release-notes"},
+            {"name": "Perplexity Changelog", "country": "US", "category": "search/model", "url": "https://docs.perplexity.ai/docs/resources/changelog"},
+            {"name": "GitHub Copilot Changelog", "country": "US", "category": "AI coding", "url": "https://github.blog/changelog/label/copilot/"},
+            {"name": "Cognition Blog", "country": "US", "category": "agent", "url": "https://cognition.com/blog"},
+            {"name": "Replit Updates", "country": "US", "category": "AI coding", "url": "https://docs.replit.com/updates"},
+            {"name": "Amazon Nova", "country": "US", "category": "model", "url": "https://aws.amazon.com/nova/"},
+            {"name": "Runway News", "country": "US", "category": "video model", "url": "https://runway.com/news"},
+            {"name": "Stability AI News", "country": "US", "category": "image model", "url": "https://stability.ai/news-updates"},
+            {"name": "Black Forest Labs Blog", "country": "US", "category": "image model", "url": "https://bfl.ai/blog"},
+            {"name": "Midjourney Updates", "country": "US", "category": "image model", "url": "https://updates.midjourney.com/"},
+            {"name": "Luma News", "country": "US", "category": "video model", "url": "https://lumalabs.ai/news"},
+            {"name": "Pika", "country": "US", "category": "video model", "url": "https://pika.art/"},
+            {"name": "Adobe Firefly", "country": "US", "category": "creative model", "url": "https://helpx.adobe.com/firefly/whats-new.html"},
+            {"name": "Together AI Blog", "country": "US", "category": "model platform", "url": "https://www.together.ai/blog"},
+            {"name": "Manus Blog", "country": "CN", "category": "agent", "url": "https://manus.im/blog"},
+            {"name": "Kling AI", "country": "CN", "category": "video model", "url": "https://kling.ai/"},
+            {"name": "Vidu", "country": "CN", "category": "video model", "url": "https://www.vidu.com/"},
+            {"name": "Meituan LongCat", "country": "CN", "category": "model", "url": "https://longcat.chat/"},
+            {"name": "IBM Granite", "country": "US", "category": "model", "url": "https://www.ibm.com/granite"},
+            {"name": "Salesforce AI Research", "country": "US", "category": "model research", "url": "https://www.salesforce.com/ai-research/"},
+            {"name": "Snowflake Cortex", "country": "US", "category": "model/platform", "url": "https://www.snowflake.com/en/product/features/cortex/"},
+            {"name": "Liquid AI Models", "country": "US", "category": "model", "url": "https://www.liquid.ai/news/models"},
+            {"name": "Nous Research", "country": "US", "category": "open model", "url": "https://nousresearch.com/"},
+            {"name": "Cerebras Blog", "country": "US", "category": "model/infrastructure", "url": "https://www.cerebras.ai/blog"},
+            {"name": "Prime Intellect Blog", "country": "US", "category": "open model", "url": "https://www.primeintellect.ai/blog"},
+            {"name": "ElevenLabs Changelog", "country": "US", "category": "audio model", "url": "https://elevenlabs.io/docs/changelog"},
+            {"name": "Ideogram Updates", "country": "US", "category": "image model", "url": "https://ideogram.ai/features/"},
+            {"name": "Suno Blog", "country": "US", "category": "music model", "url": "https://suno.com/blog"},
+            {"name": "Inception", "country": "US", "category": "diffusion language model", "url": "https://www.inceptionlabs.ai/"},
+            {"name": "OpenRouter Changelog", "country": "US", "category": "model platform", "url": "https://openrouter.ai/changelog"},
+            {"name": "OpenBMB", "country": "CN", "category": "open model", "url": "https://www.openbmb.cn/"},
+            {"name": "BAAI", "country": "CN", "category": "model research", "url": "https://www.baai.ac.cn/zh-cn/"},
+            {"name": "Ant Ling", "country": "CN", "category": "model", "url": "https://inclusion.ai/"},
+            {"name": "Wan", "country": "CN", "category": "video model", "url": "https://wan.video/"},
+            {"name": "Skywork", "country": "CN", "category": "model", "url": "https://skywork.ai/"},
+        ],
+        "official_x_accounts": [
+            {"name": "OpenAI", "handle": "OpenAI", "country": "US"},
+            {"name": "Anthropic", "handle": "AnthropicAI", "country": "US"},
+            {"name": "Google DeepMind", "handle": "GoogleDeepMind", "country": "US"},
+            {"name": "Meta AI", "handle": "AIatMeta", "country": "US"},
+            {"name": "xAI", "handle": "SpaceXAI", "country": "US"},
+            {"name": "Microsoft AI", "handle": "MicrosoftAI", "country": "US"},
+            {"name": "NVIDIA AI", "handle": "NVIDIAAI", "country": "US"},
+            {"name": "Ai2", "handle": "allen_ai", "country": "US"},
+            {"name": "Qwen", "handle": "Alibaba_Qwen", "country": "CN"},
+            {"name": "DeepSeek", "handle": "deepseek_ai", "country": "CN"},
+            {"name": "Z.ai / GLM", "handle": "Zai_org", "country": "CN"},
+            {"name": "Kimi", "handle": "Kimi_Moonshot", "country": "CN"},
+            {"name": "MiniMax", "handle": "MiniMax_AI", "country": "CN"},
+            {"name": "StepFun", "handle": "StepFun_ai", "country": "CN"},
+            {"name": "ByteDance Seed", "handle": "ByteDanceSeed", "country": "CN"},
+            {"name": "Tencent Hunyuan", "handle": "TencentHunyuan", "country": "CN"},
+            {"name": "Baidu", "handle": "Baidu_Inc", "country": "CN"},
+            {"name": "01.AI", "handle": "01AI_Yi", "country": "CN"},
+            {"name": "Baichuan AI", "handle": "BaichuanAI", "country": "CN"},
+            {"name": "Huawei Cloud / Pangu", "handle": "HuaweiCloud1", "country": "CN"},
+            {"name": "SenseTime", "handle": "SenseTimeGroup", "country": "CN"},
+            {"name": "Mistral AI", "handle": "MistralAI", "country": "FR"},
+            {"name": "Cohere", "handle": "cohere", "country": "CA"},
+            {"name": "Claude", "handle": "ClaudeAI", "country": "US", "category": "model/product"},
+            {"name": "Grok", "handle": "grok", "country": "US", "category": "model/product"},
+            {"name": "Cursor", "handle": "cursor_ai", "country": "US", "category": "AI coding"},
+            {"name": "Perplexity", "handle": "perplexity_ai", "country": "US", "category": "search/model"},
+            {"name": "GitHub Copilot", "handle": "GitHubCopilot", "country": "US", "category": "AI coding"},
+            {"name": "Cognition", "handle": "cognition_labs", "country": "US", "category": "agent"},
+            {"name": "Replit", "handle": "Replit", "country": "US", "category": "AI coding"},
+            {"name": "Amazon Web Services", "handle": "AWSCloud", "country": "US", "category": "model/platform"},
+            {"name": "Runway", "handle": "runwayml", "country": "US", "category": "video model"},
+            {"name": "Stability AI", "handle": "StabilityAI", "country": "US", "category": "image model"},
+            {"name": "Black Forest Labs", "handle": "bfl_ai", "country": "US", "category": "image model"},
+            {"name": "Midjourney", "handle": "midjourney", "country": "US", "category": "image model"},
+            {"name": "Luma", "handle": "LumaLabsAI", "country": "US", "category": "video model"},
+            {"name": "Pika", "handle": "pika_labs", "country": "US", "category": "video model"},
+            {"name": "Adobe Firefly", "handle": "AdobeFirefly", "country": "US", "category": "creative model"},
+            {"name": "Together AI", "handle": "togethercompute", "country": "US", "category": "model platform"},
+            {"name": "Manus", "handle": "ManusAI", "country": "CN", "category": "agent"},
+            {"name": "Kling AI", "handle": "Kling_ai", "country": "CN", "category": "video model"},
+            {"name": "Vidu", "handle": "ViduAI_official", "country": "CN", "category": "video model"},
+            {"name": "Meituan LongCat", "handle": "Meituan_LongCat", "country": "CN", "category": "model"},
+            {"name": "IBM Research", "handle": "IBMResearch", "country": "US", "category": "model research"},
+            {"name": "Salesforce Developers", "handle": "SalesforceDevs", "country": "US", "category": "model/platform"},
+            {"name": "Snowflake", "handle": "SnowflakeDB", "country": "US", "category": "model/platform"},
+            {"name": "Liquid AI", "handle": "LiquidAI", "country": "US", "category": "model"},
+            {"name": "Nous Research", "handle": "NousResearch", "country": "US", "category": "open model"},
+            {"name": "Cerebras", "handle": "Cerebras", "country": "US", "category": "model/infrastructure"},
+            {"name": "Prime Intellect", "handle": "PrimeIntellect", "country": "US", "category": "open model"},
+            {"name": "ElevenLabs", "handle": "ElevenLabs", "country": "US", "category": "audio model"},
+            {"name": "Ideogram", "handle": "ideogram_ai", "country": "US", "category": "image model"},
+            {"name": "Suno", "handle": "suno_ai_", "country": "US", "category": "music model"},
+            {"name": "Inception", "handle": "_inception_ai", "country": "US", "category": "diffusion language model"},
+            {"name": "Hugging Face", "handle": "huggingface", "country": "US", "category": "model ecosystem"},
+            {"name": "OpenRouter", "handle": "OpenRouter", "country": "US", "category": "model platform"},
+            {"name": "OpenBMB", "handle": "OpenBMB", "country": "CN", "category": "open model"},
+            {"name": "BAAI", "handle": "BAAIBeijing", "country": "CN", "category": "model research"},
+            {"name": "Ant Ling", "handle": "AntLingAGI", "country": "CN", "category": "model"},
+            {"name": "Wan", "handle": "Alibaba_Wan", "country": "CN", "category": "video model"},
+            {"name": "Skywork", "handle": "Skywork_ai", "country": "CN", "category": "model"},
+        ],
+        "model_changelogs": [
+            {
+                "name": "Mistral AI",
+                "url": "https://docs.mistral.ai/resources/changelogs",
+                "parser": "mistral",
+            },
+            {
+                "name": "QwenCloud",
+                "url": "https://docs.qwencloud.com/changelog/models",
+                "parser": "qwen",
+                "include_prefixes": ["qwen", "wan"],
+            },
+        ],
         "aihot": "https://aihot.today/ai-news",
         "official_sitemaps": [
             {
@@ -97,6 +278,11 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "hacker_news": 5,
         "arxiv": 4,
         "huggingface_models": 4,
+        "official_model_releases_per_org": 2,
+        "model_changelog_per_source": 3,
+        "model_releases": 8,
+        "official_x_updates": 12,
+        "official_social_updates": 8,
         "aihot": 5,
         "official_sitemaps_per_source": 3,
         "github_releases_per_repo": 1,
@@ -116,6 +302,8 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     },
     "quality": {
         "max_feed_age_days": 10,
+        "model_release_max_age_days": 14,
+        "official_x_lookback_hours": 48,
         "similarity_threshold": 0.76,
         "min_similarity_tokens": 4,
     },
@@ -190,6 +378,8 @@ DEFAULT_CONFIG: Dict[str, Any] = {
                     "copilot",
                     "xai",
                     "grok",
+                    "qwen",
+                    "deepseek",
                 ],
                 "reason": "适合判断模型公司格局、生态路线和未来内容叙事，不只盯单个产品更新。",
             },
@@ -374,6 +564,16 @@ SAMPLE_DATA: Dict[str, List[Dict[str, str]]] = {
             "source": "Hugging Face Trending",
             "summary": "近期热度上升的多模态模型，适合关注视频内容生产工作流。",
             "popularity": 180,
+        },
+        {
+            "title": "Sample AI 发布 Sample-Model-2",
+            "url": "https://example.com/sample-model-2",
+            "time": "示例数据",
+            "source": "Sample AI 官方",
+            "summary": "Sample AI 官方发布新一代模型，重点关注能力、许可与可用渠道。",
+            "official": True,
+            "signal_type": "model_release",
+            "release_kind": "模型发布",
         },
     ],
 }
@@ -735,6 +935,10 @@ class DailyBriefing:
                 source,
                 limit,
             )
+            for article in articles:
+                article["official"] = True
+                if source_config.get("track_models", True):
+                    self._mark_official_model_release(article)
             self._log(f"获取到 {len(articles)} 条 {source} 官方更新")
             self._record_source_health(source, started_at, len(articles))
             return articles
@@ -743,15 +947,93 @@ class DailyBriefing:
             self._record_source_health(source, started_at, 0, str(exc))
             return []
 
+    def _looks_like_model_release(self, item: Dict[str, Any]) -> bool:
+        if item.get("signal_type") == "model_release":
+            return True
+        title = item_title(item).lower()
+        model_markers = (
+            "model",
+            "gpt",
+            "claude",
+            "gemini",
+            "gemma",
+            "llama",
+            "mistral",
+            "ministral",
+            "qwen",
+            "deepseek",
+            "grok",
+            "phi",
+            "olmo",
+            "nemotron",
+            "embedding",
+            "text-to-speech",
+            "speech-to-text",
+            "image generation",
+            "video generation",
+            "模型",
+        )
+        release_markers = (
+            "introducing",
+            "announce",
+            "launch",
+            "release",
+            "available",
+            "now in",
+            "发布",
+            "推出",
+            "上线",
+            "开源",
+        )
+        if not has_any_keyword(title, model_markers):
+            return False
+        if has_any_keyword(title, release_markers):
+            return True
+        versioned_model = re.search(
+            r"(?<![a-z0-9])"
+            r"(gpt|claude|gemini|gemma|llama|mistral|ministral|qwen|deepseek|grok|phi|olmo|nemotron)"
+            r"(?:[-\s][a-z]+){0,3}[-\s]?\d",
+            title,
+        )
+        return bool(versioned_model)
+
+    def _mark_official_model_release(
+        self,
+        item: Dict[str, Any],
+        release_kind: str = "模型发布/更新",
+    ) -> None:
+        if not self._looks_like_model_release(item):
+            return
+        item["official"] = True
+        item["signal_type"] = "model_release"
+        item.setdefault("release_kind", release_kind)
+
+    def _within_model_release_age(self, value: str) -> bool:
+        published_at = self._parse_feed_datetime(value)
+        max_age_days = int(
+            self.config.get("quality", {}).get("model_release_max_age_days", 14)
+        )
+        if published_at is None or max_age_days <= 0:
+            return True
+        age = datetime.now(timezone.utc) - published_at.astimezone(timezone.utc)
+        return age.total_seconds() <= max_age_days * 86400
+
     def _official_ai_source_names(self) -> set[str]:
         sources = self.config.get("sources", {}).get("ai_official", [])
         if not isinstance(sources, list):
             return set()
-        return {
+        names = {
             clean_text(source.get("name", ""))
             for source in sources
             if isinstance(source, dict) and source.get("name")
         }
+        for key in ("official_model_orgs", "model_changelogs"):
+            names.update(
+                clean_text(source.get("name", ""))
+                for source in self.config.get("sources", {}).get(key, [])
+                if isinstance(source, dict) and source.get("name")
+            )
+        return names
 
     def _is_ai_relevant(self, item: Dict[str, str]) -> bool:
         if clean_text(item.get("source", "")) in self._official_ai_source_names():
@@ -842,6 +1124,8 @@ class DailyBriefing:
         primary: Dict[str, Any],
         duplicate: Dict[str, Any],
     ) -> Dict[str, Any]:
+        if duplicate.get("official") and not primary.get("official"):
+            primary, duplicate = duplicate, primary
         merged = dict(primary)
         sources: List[str] = []
         for value in (primary.get("source", ""), duplicate.get("source", "")):
@@ -851,6 +1135,17 @@ class DailyBriefing:
         merged["source"] = " / ".join(sources)
         if not clean_text(merged.get("summary", "")):
             merged["summary"] = clean_text(duplicate.get("summary", ""))
+        for field in (
+            "official",
+            "signal_type",
+            "release_kind",
+            "official_source_url",
+            "model_id",
+            "published_at",
+            "summary_cn",
+        ):
+            if duplicate.get(field) and not merged.get(field):
+                merged[field] = duplicate[field]
 
         related_links = list(primary.get("related_links", []))
         duplicate_url = clean_text(duplicate.get("url", ""))
@@ -1323,6 +1618,480 @@ class DailyBriefing:
             )
             return []
 
+    def fetch_official_model_orgs(
+        self,
+        limit_per_org: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        """Track newly created model cards from curated first-party HF orgs."""
+        limit_per_org = limit_per_org or self._limit(
+            "official_model_releases_per_org"
+        )
+        if limit_per_org <= 0:
+            return []
+        api_url = clean_text(
+            self.config.get("sources", {}).get(
+                "huggingface_models", "https://huggingface.co/api/models"
+            )
+        )
+        source_configs = [
+            source
+            for source in self.config.get("sources", {}).get(
+                "official_model_orgs", []
+            )
+            if isinstance(source, dict) and clean_text(source.get("author", ""))
+        ]
+
+        def fetch_one(source_config: Dict[str, Any]) -> List[Dict[str, Any]]:
+            name = clean_text(source_config.get("name", "官方模型组织"))
+            author = clean_text(source_config.get("author", ""))
+            started_at = monotonic()
+            rows: List[Dict[str, Any]] = []
+            try:
+                payload = self._get_json(
+                    api_url,
+                    {
+                        "author": author,
+                        "sort": "createdAt",
+                        "direction": -1,
+                        "limit": max(limit_per_org * 3, 3),
+                    },
+                )
+                for model in payload:
+                    model_id = clean_text(model.get("id", ""))
+                    created_at = clean_text(model.get("createdAt", ""))
+                    if not model_id or not self._within_model_release_age(created_at):
+                        continue
+                    pipeline = (
+                        clean_text(model.get("pipeline_tag", "")) or "未标注任务"
+                    )
+                    likes = int(model.get("likes") or 0)
+                    rows.append(
+                        {
+                            "title": f"{name} 发布 {model_id}",
+                            "url": f"https://huggingface.co/{model_id}",
+                            "time": created_at[:10] or "N/A",
+                            "published_at": created_at,
+                            "source": f"{name} · Hugging Face 官方组织",
+                            "summary": (
+                                f"{name} 在官方 Hugging Face 组织发布模型权重，"
+                                f"任务类型 {pipeline}，当前 {likes} likes。"
+                            ),
+                            "official": True,
+                            "signal_type": "model_release",
+                            "release_kind": "开源权重/模型卡",
+                            "model_id": model_id,
+                            "official_source_url": f"https://huggingface.co/{author}",
+                        }
+                    )
+                    if len(rows) >= limit_per_org:
+                        break
+                self._record_source_health(
+                    f"{name} 官方模型组织", started_at, len(rows)
+                )
+            except Exception as exc:
+                self._log(f"抓取 {name} 官方模型组织失败: {exc}")
+                self._record_source_health(
+                    f"{name} 官方模型组织", started_at, 0, str(exc)
+                )
+            return rows
+
+        workers = min(6, len(source_configs)) or 1
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            groups = list(executor.map(fetch_one, source_configs))
+        result = self._round_robin(groups, sum(len(group) for group in groups))
+        self._log(f"获取到 {len(result)} 条官方模型卡更新")
+        return result
+
+    def _parse_qwen_model_changelog(
+        self,
+        soup: BeautifulSoup,
+        source_config: Dict[str, Any],
+        limit: int,
+    ) -> List[Dict[str, Any]]:
+        main = soup.find("main") or soup
+        source_url = clean_text(source_config.get("url", ""))
+        source_name = clean_text(source_config.get("name", "QwenCloud"))
+        prefixes = tuple(
+            clean_text(str(value)).lower()
+            for value in source_config.get("include_prefixes", [])
+            if clean_text(str(value))
+        )
+        heading_urls = {}
+        for heading in main.find_all("h3"):
+            title = clean_text(heading.get_text(" ", strip=True))
+            if not title:
+                continue
+            anchor = clean_text(heading.get("id", ""))
+            heading_urls[title] = f"{source_url}#{anchor}" if anchor else source_url
+
+        lines = [
+            clean_text(value).strip("\u200b")
+            for value in main.stripped_strings
+            if clean_text(value).strip("\u200b")
+        ]
+        date_pattern = re.compile(r"^[A-Z][a-z]+ \d{1,2}, \d{4}$")
+        rows: List[Dict[str, Any]] = []
+        current_date: Optional[datetime] = None
+        current_title = ""
+        summary_parts: List[str] = []
+
+        def flush() -> None:
+            nonlocal current_title, summary_parts
+            if not current_title or current_date is None:
+                current_title = ""
+                summary_parts = []
+                return
+            lowered = current_title.lower()
+            if prefixes and not lowered.startswith(prefixes):
+                current_title = ""
+                summary_parts = []
+                return
+            published_at = current_date.replace(tzinfo=timezone.utc).isoformat()
+            if self._within_model_release_age(published_at):
+                raw_summary = short_title(" ".join(summary_parts), 420)
+                rows.append(
+                    {
+                        "title": f"{source_name} 发布 {current_title}",
+                        "url": heading_urls.get(current_title, source_url),
+                        "time": current_date.strftime("%Y-%m-%d"),
+                        "published_at": published_at,
+                        "source": f"{source_name} 官方 Changelog",
+                        "summary": raw_summary,
+                        "summary_cn": (
+                            f"{source_name} 官方发布记录显示 {current_title} 已上线，"
+                            "具体能力、价格和调用方式以官方页面为准。"
+                        ),
+                        "official": True,
+                        "signal_type": "model_release",
+                        "release_kind": "API 模型发布",
+                        "official_source_url": source_url,
+                    }
+                )
+            current_title = ""
+            summary_parts = []
+
+        for line in lines:
+            if date_pattern.match(line):
+                flush()
+                try:
+                    current_date = datetime.strptime(line, "%B %d, %Y")
+                except ValueError:
+                    current_date = None
+                continue
+            if current_date is not None and line in heading_urls:
+                flush()
+                current_title = line
+                continue
+            if current_title and line.lower() not in {
+                "user guide",
+                "api reference",
+                "copy page",
+            }:
+                summary_parts.append(line)
+        flush()
+        rows.sort(key=lambda row: row.get("published_at", ""), reverse=True)
+        return rows[:limit]
+
+    def _parse_mistral_model_changelog(
+        self,
+        soup: BeautifulSoup,
+        source_config: Dict[str, Any],
+        limit: int,
+    ) -> List[Dict[str, Any]]:
+        main = soup.find("main") or soup
+        source_url = clean_text(source_config.get("url", ""))
+        source_name = clean_text(source_config.get("name", "Mistral AI"))
+        lines = [
+            clean_text(value).strip("\u200b")
+            for value in main.stripped_strings
+            if clean_text(value).strip("\u200b")
+        ]
+        year_pattern = re.compile(
+            r"^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{2})$"
+        )
+        date_pattern = re.compile(r"^[A-Z][a-z]+ \d{1,2}$")
+        current_year = datetime.now(timezone.utc).year
+        current_date: Optional[datetime] = None
+        block: List[str] = []
+        rows: List[Dict[str, Any]] = []
+
+        def flush() -> None:
+            nonlocal block
+            if current_date is None or "MODEL RELEASED" not in block:
+                block = []
+                return
+            content = [
+                part
+                for part in block
+                if part not in {"MODEL RELEASED", "API UPDATED", "OTHER", "SECURITY"}
+            ]
+            body = clean_text(" ".join(content)).replace("( ", "(").replace(" )", ")")
+            if not body:
+                block = []
+                return
+            title = re.split(r"(?<=[.!?])\s+", body, maxsplit=1)[0]
+            published_at = current_date.replace(tzinfo=timezone.utc).isoformat()
+            if self._within_model_release_age(published_at):
+                rows.append(
+                    {
+                        "title": f"{source_name}：{short_title(title, 150)}",
+                        "url": source_url,
+                        "time": current_date.strftime("%Y-%m-%d"),
+                        "published_at": published_at,
+                        "source": f"{source_name} 官方 Changelog",
+                        "summary": short_title(body, 420),
+                        "summary_cn": (
+                            f"{source_name} 官方 Changelog 记录了这次模型发布，"
+                            "具体能力、许可和 API 变化以官方页面为准。"
+                        ),
+                        "official": True,
+                        "signal_type": "model_release",
+                        "release_kind": "模型发布",
+                        "official_source_url": source_url,
+                    }
+                )
+            block = []
+
+        for line in lines:
+            year_match = year_pattern.match(line)
+            if year_match:
+                flush()
+                current_year = 2000 + int(year_match.group(2))
+                current_date = None
+                continue
+            if date_pattern.match(line):
+                flush()
+                try:
+                    current_date = datetime.strptime(
+                        f"{line} {current_year}", "%B %d %Y"
+                    )
+                except ValueError:
+                    current_date = None
+                continue
+            if current_date is not None:
+                block.append(line)
+        flush()
+        rows.sort(key=lambda row: row.get("published_at", ""), reverse=True)
+        return rows[:limit]
+
+    def fetch_model_changelogs(
+        self,
+        limit_per_source: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        """Fetch dated model launches from official vendor changelogs."""
+        limit_per_source = limit_per_source or self._limit(
+            "model_changelog_per_source"
+        )
+        if limit_per_source <= 0:
+            return []
+        groups: List[List[Dict[str, Any]]] = []
+        for source_config in self.config.get("sources", {}).get(
+            "model_changelogs", []
+        ):
+            if not isinstance(source_config, dict):
+                continue
+            name = clean_text(source_config.get("name", "模型厂商"))
+            url = clean_text(source_config.get("url", ""))
+            parser = clean_text(source_config.get("parser", ""))
+            if not url:
+                continue
+            rows: List[Dict[str, Any]] = []
+            started_at = monotonic()
+            try:
+                soup = self._get_soup(url)
+                if parser == "qwen":
+                    rows = self._parse_qwen_model_changelog(
+                        soup, source_config, limit_per_source
+                    )
+                elif parser == "mistral":
+                    rows = self._parse_mistral_model_changelog(
+                        soup, source_config, limit_per_source
+                    )
+                else:
+                    raise ValueError(f"不支持的模型 Changelog 解析器: {parser}")
+                self._record_source_health(
+                    f"{name} 模型 Changelog", started_at, len(rows)
+                )
+            except Exception as exc:
+                self._log(f"抓取 {name} 模型 Changelog 失败: {exc}")
+                self._record_source_health(
+                    f"{name} 模型 Changelog", started_at, 0, str(exc)
+                )
+            groups.append(rows)
+        result = self._round_robin(groups, sum(len(group) for group in groups))
+        self._log(f"获取到 {len(result)} 条官方模型 Changelog 更新")
+        return result
+
+    def official_model_page_watchlist(self) -> List[Dict[str, str]]:
+        rows: List[Dict[str, str]] = []
+        for source in self.config.get("sources", {}).get(
+            "official_model_pages", []
+        ):
+            if not isinstance(source, dict):
+                continue
+            name = clean_text(source.get("name", ""))
+            url = clean_text(source.get("url", ""))
+            if not name or not url:
+                continue
+            rows.append(
+                {
+                    "name": name,
+                    "url": url,
+                    "country": clean_text(source.get("country", "")),
+                    "category": clean_text(source.get("category", "model")),
+                }
+            )
+        return rows
+
+    def official_product_page_watchlist(self) -> List[Dict[str, str]]:
+        rows: List[Dict[str, str]] = []
+        for source in self.config.get("sources", {}).get(
+            "official_product_pages", []
+        ):
+            if not isinstance(source, dict):
+                continue
+            name = clean_text(source.get("name", ""))
+            url = clean_text(source.get("url", ""))
+            if not name or not url:
+                continue
+            rows.append(
+                {
+                    "name": name,
+                    "url": url,
+                    "country": clean_text(source.get("country", "")),
+                    "category": clean_text(source.get("category", "AI product")),
+                }
+            )
+        return rows
+
+    def official_x_watchlist(self) -> List[Dict[str, str]]:
+        rows: List[Dict[str, str]] = []
+        for source in self.config.get("sources", {}).get(
+            "official_x_accounts", []
+        ):
+            if not isinstance(source, dict):
+                continue
+            name = clean_text(source.get("name", ""))
+            handle = clean_text(source.get("handle", "")).lstrip("@")
+            if not name or not handle:
+                continue
+            rows.append(
+                {
+                    "name": name,
+                    "handle": handle,
+                    "country": clean_text(source.get("country", "")),
+                    "category": clean_text(source.get("category", "model company")),
+                    "url": f"https://x.com/{handle}",
+                    "search_query": f"from:{handle}",
+                }
+            )
+        return rows
+
+    def fetch_official_x_updates(self) -> List[Dict[str, Any]]:
+        """Fetch first-party X posts when an official X API token is available."""
+        token = clean_text(os.environ.get("X_BEARER_TOKEN", ""))
+        accounts = self.official_x_watchlist()
+        if not token or not accounts:
+            if accounts and not token:
+                self._log(
+                    "未配置 X_BEARER_TOKEN；保留官方账号清单，交由 Codex 联网检索"
+                )
+            return []
+
+        limit = self._limit("official_x_updates")
+        lookback_hours = int(
+            self.config.get("quality", {}).get("official_x_lookback_hours", 48)
+        )
+        if limit <= 0:
+            return []
+
+        account_by_handle = {
+            account["handle"].lower(): account for account in accounts
+        }
+        started_at = monotonic()
+        rows: List[Dict[str, Any]] = []
+        try:
+            for offset in range(0, len(accounts), 8):
+                group = accounts[offset : offset + 8]
+                query = "(" + " OR ".join(
+                    f"from:{account['handle']}" for account in group
+                ) + ") -is:retweet"
+                response = self.session.get(
+                    "https://api.x.com/2/tweets/search/recent",
+                    headers={"Authorization": f"Bearer {token}"},
+                    params={
+                        "query": query,
+                        "start_time": (
+                            datetime.now(timezone.utc)
+                            - timedelta(hours=max(1, lookback_hours))
+                        ).isoformat(timespec="seconds").replace("+00:00", "Z"),
+                        "max_results": 100,
+                        "tweet.fields": "author_id,created_at,public_metrics",
+                        "expansions": "author_id",
+                        "user.fields": "name,username",
+                    },
+                    timeout=int(self.config.get("request", {}).get("timeout", 25)),
+                )
+                response.raise_for_status()
+                payload = response.json()
+                users = {
+                    clean_text(user.get("id", "")): user
+                    for user in payload.get("includes", {}).get("users", [])
+                }
+                for post in payload.get("data", []):
+                    user = users.get(clean_text(post.get("author_id", "")), {})
+                    handle = clean_text(user.get("username", ""))
+                    account = account_by_handle.get(handle.lower())
+                    post_id = clean_text(post.get("id", ""))
+                    body = clean_text(post.get("text", ""))
+                    if not account or not post_id or not body:
+                        continue
+                    metrics = post.get("public_metrics", {}) or {}
+                    popularity = sum(
+                        int(metrics.get(key) or 0)
+                        for key in (
+                            "like_count",
+                            "retweet_count",
+                            "reply_count",
+                            "quote_count",
+                        )
+                    )
+                    row = {
+                        "title": short_title(body, 120),
+                        "url": f"https://x.com/{handle}/status/{post_id}",
+                        "time": clean_text(post.get("created_at", ""))[:10]
+                        or "N/A",
+                        "published_at": clean_text(post.get("created_at", "")),
+                        "source": f"X · {account['name']} (@{handle})",
+                        "summary": body,
+                        "official": True,
+                        "signal_type": "official_social",
+                        "release_kind": "官方账号动态",
+                        "official_source_url": account["url"],
+                        "x_handle": handle,
+                        "country": account.get("country", ""),
+                        "popularity": popularity,
+                        "public_metrics": metrics,
+                    }
+                    self._mark_official_model_release(row, "X 官方首发")
+                    rows.append(row)
+            rows = self._dedupe_items(rows)
+            rows.sort(
+                key=lambda row: (
+                    clean_text(row.get("published_at", "")),
+                    int(row.get("popularity", 0)),
+                ),
+                reverse=True,
+            )
+            rows = rows[:limit]
+            self._record_source_health("X 官方账号", started_at, len(rows))
+            self._log(f"获取到 {len(rows)} 条 X 官方账号动态")
+            return rows
+        except Exception as exc:
+            self._log(f"抓取 X 官方账号失败: {exc}")
+            self._record_source_health("X 官方账号", started_at, 0, str(exc))
+            return []
+
     def fetch_aihot(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """Read AI HOT's server-rendered selected feed; its old public API is gone."""
         limit = limit or self._limit("aihot")
@@ -1409,19 +2178,19 @@ class DailyBriefing:
                     if not title:
                         continue
                     published = self._parse_feed_datetime(lastmod)
-                    rows.append(
-                        {
-                            "title": title,
-                            "url": link,
-                            "time": published.strftime("%Y-%m-%d")
-                            if published
-                            else "N/A",
-                            "published_at": published.isoformat() if published else "",
-                            "source": name,
-                            "summary": f"{name} 官方网站近期更新。",
-                            "official": True,
-                        }
-                    )
+                    row = {
+                        "title": title,
+                        "url": link,
+                        "time": published.strftime("%Y-%m-%d")
+                        if published
+                        else "N/A",
+                        "published_at": published.isoformat() if published else "",
+                        "source": name,
+                        "summary": f"{name} 官方网站近期更新。",
+                        "official": True,
+                    }
+                    self._mark_official_model_release(row)
+                    rows.append(row)
                     if len(rows) >= limit_per_source:
                         break
                 self._log(f"获取到 {len(rows)} 条 {name} sitemap 更新")
@@ -1495,6 +2264,9 @@ class DailyBriefing:
         if self.dry_run:
             return self._sample("ecosystem_signals", limit)
         groups = [
+            self.fetch_official_model_orgs(),
+            self.fetch_model_changelogs(),
+            self.fetch_official_x_updates(),
             self.fetch_hacker_news(),
             self.fetch_arxiv(),
             self.fetch_huggingface_models(),
@@ -1734,6 +2506,9 @@ class DailyBriefing:
         summary = clean_text(item.get("summary", "")).lower()
         text = f"{title} {summary}"
 
+        if item.get("signal_type") == "model_release":
+            return "最新模型发布"
+
         if section == "web3":
             if has_any_keyword(text, ("regulation", "rules", "eu", "uk", "mica", "treasury", "sanction")):
                 return "政策监管"
@@ -1786,6 +2561,9 @@ class DailyBriefing:
             ("Anthropic", ("anthropic", "claude")),
             ("Google", ("google", "gemini", "deepmind")),
             ("Meta", ("meta", "llama", "zuckerberg")),
+            ("Qwen", ("qwen", "wan")),
+            ("DeepSeek", ("deepseek",)),
+            ("xAI", ("xai", "grok")),
             ("Microsoft", ("microsoft", "copilot")),
             ("Agent", ("agent", "agents", "agentic", "mcp", "智能体", "多智能体")),
             ("AI 编码", ("codex", "claude code", "coding", "devtools", "swe-bench")),
@@ -1800,7 +2578,12 @@ class DailyBriefing:
             ("Web3", ("web3", "crypto", "bitcoin", "btc", "xrp", "solana", "blockchain", "on-chain", "链上")),
             ("RWA", ("tokenized", "blackrock", "etf", "stock")),
         ]
-        tags = [label for label, keywords in rules if has_any_keyword(text, keywords)]
+        tags = ["模型发布"] if item.get("signal_type") == "model_release" else []
+        tags.extend(
+            label
+            for label, keywords in rules
+            if has_any_keyword(text, keywords) and label not in tags
+        )
         if section == "web3" and "Web3" not in tags:
             tags.insert(0, "Web3")
         if section == "github" and "开源生态" not in tags:
@@ -1836,6 +2619,9 @@ class DailyBriefing:
             "fund",
             "chip",
             "nvidia",
+            "qwen",
+            "deepseek",
+            "grok",
             "web3",
             "bitcoin",
             "xrp",
@@ -1846,6 +2632,8 @@ class DailyBriefing:
             "芯片",
         ]
         score += sum(5 for keyword in high_signal if keyword_in_text(text, keyword))
+        if item.get("signal_type") == "model_release" and item.get("official"):
+            score += 18
         if item.get("summary_cn"):
             score += 4
         if section == "github":
@@ -2171,6 +2959,14 @@ class DailyBriefing:
             "score_delta": item.get("score_delta", 0),
             "rank_delta": item.get("rank_delta", 0),
             "history_status": item.get("history_status", "首次出现"),
+            "published_at": item.get("published_at", ""),
+            "signal_type": item.get("signal_type", ""),
+            "release_kind": item.get("release_kind", ""),
+            "official_source_url": item.get("official_source_url", ""),
+            "model_id": item.get("model_id", ""),
+            "x_handle": item.get("x_handle", ""),
+            "country": item.get("country", ""),
+            "public_metrics": item.get("public_metrics", {}),
         }
 
     def generate_highlights(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -2271,6 +3067,58 @@ class DailyBriefing:
         )
         return [self._briefing_entry(item) for item in repeated[:limit]]
 
+    def generate_model_releases(
+        self,
+        items: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        limit = self._limit("model_releases")
+        if limit <= 0:
+            return []
+
+        def published_timestamp(item: Dict[str, Any]) -> float:
+            published = self._parse_feed_datetime(
+                clean_text(item.get("published_at", ""))
+            )
+            if published is None:
+                return 0.0
+            return published.astimezone(timezone.utc).timestamp()
+
+        releases = [
+            item
+            for item in items
+            if item.get("signal_type") == "model_release" and item.get("official")
+        ]
+        releases.sort(
+            key=lambda item: (
+                published_timestamp(item),
+                int(item.get("overall_score", 0)),
+            ),
+            reverse=True,
+        )
+        return [self._briefing_entry(item) for item in releases[:limit]]
+
+    def generate_official_social_updates(
+        self,
+        items: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        limit = self._limit("official_social_updates")
+        if limit <= 0:
+            return []
+        updates = [
+            item
+            for item in items
+            if item.get("signal_type") == "official_social" and item.get("official")
+        ]
+        updates.sort(
+            key=lambda item: (
+                clean_text(item.get("published_at", "")),
+                int(item.get("popularity", 0)),
+                int(item.get("overall_score", 0)),
+            ),
+            reverse=True,
+        )
+        return [self._briefing_entry(item) for item in updates[:limit]]
+
     def generate_editorial_queue(
         self,
         items: List[Dict[str, Any]],
@@ -2298,6 +3146,16 @@ class DailyBriefing:
             seen_keys.add(key)
             source_counts[family] = source_counts.get(family, 0) + 1
             return True
+
+        model_limit = min(self._limit("model_releases"), limit)
+        model_count = 0
+        for item in ranked:
+            if item.get("signal_type") != "model_release" or not item.get("official"):
+                continue
+            if add_item(item, enforce_source_cap=False):
+                model_count += 1
+            if model_count >= model_limit:
+                break
 
         for section in ("ai", "web3", "venture", "github"):
             top = next((item for item in ranked if item.get("section") == section), None)
@@ -2566,6 +3424,8 @@ class DailyBriefing:
         title = item.get("display_title", "")
         tags = item.get("tags", [])
         category = item.get("category", "")
+        if item.get("signal_type") == "model_release":
+            return f"新模型刚刚发布：{short_title(title, 28)}，先看它到底改了什么"
         is_agent_topic = "AI 编码" in tags or "Agent" in tags or category == "Agent / AI 编码"
         if is_agent_topic:
             return f"AI Agent 的下一波机会，可能藏在「{short_title(title, 22)}」里"
@@ -2589,6 +3449,8 @@ class DailyBriefing:
         tags = item.get("tags", [])
         category = item.get("category", "")
         summary = item.get("summary_cn", "")
+        if item.get("signal_type") == "model_release":
+            return "从官方发布内容、可用渠道和真实变化切入；没有官方数据的参数、价格和效果不要补写。"
         is_agent_topic = "AI 编码" in tags or "Agent" in tags or category == "Agent / AI 编码"
         if is_agent_topic:
             return "从开发者效率、任务分发和真实工作流落地切入，别只讲模型参数。"
@@ -2630,6 +3492,9 @@ class DailyBriefing:
             item["summary_cn"] = self._summarize_project_cn(item)
 
     def _summarize_news_cn(self, item: Dict[str, str], section: str) -> str:
+        prepared = clean_text(item.get("summary_cn", ""))
+        if prepared:
+            return prepared
         existing = clean_text(item.get("summary", ""))
         if contains_chinese(existing):
             return existing
@@ -2638,6 +3503,12 @@ class DailyBriefing:
         haystack = f"{title} {existing}".lower()
 
         if section == "ai":
+            if item.get("signal_type") == "model_release":
+                source = clean_text(item.get("source", "模型厂商"))
+                return (
+                    f"{source} 发布或更新了 {short_title(title, 48)}，"
+                    "优先核对能力、上下文、价格、许可和可用渠道。"
+                )
             rules = [
                 (("glossary", "definition", "term", "hallucination"), "这是一篇 AI 概念科普，适合拆成术语卡片或新手入门内容。"),
                 (("browser", "browsers", "chrome", "safari", "search"), "浏览器正在从搜索入口变成 AI 工作入口，值得关注新的流量分发位置。"),
@@ -2822,9 +3693,23 @@ class DailyBriefing:
         changes = self.generate_changes(ranked_items)
         business_opportunities = self.generate_business_opportunities(ranked_items)
         watchlist = self.generate_watchlist(ranked_items)
+        model_releases = self.generate_model_releases(ranked_candidates)
+        official_social_updates = self.generate_official_social_updates(
+            ranked_candidates
+        )
+        general_ai_news = [
+            item
+            for item in ai_news
+            if item.get("signal_type") not in {"model_release", "official_social"}
+        ]
         x_topics = self.generate_x_topics(all_items)
         x_drafts = self.generate_x_drafts(all_items)
-        topics = self.generate_topics(ai_news, web3_news, venture_news, github_projects)
+        topics = self.generate_topics(
+            general_ai_news,
+            web3_news,
+            venture_news,
+            github_projects,
+        )
         editorial_queue = self.generate_editorial_queue(ranked_candidates)
 
         if self.history_store is not None:
@@ -2844,9 +3729,25 @@ class DailyBriefing:
                 "history_enabled": self.history_store is not None,
                 "editorial_mode": "codex-ready",
                 "candidate_count": len(ranked_candidates),
+                "official_x_monitor": {
+                    "mode": (
+                        "x_api"
+                        if clean_text(os.environ.get("X_BEARER_TOKEN", ""))
+                        else "codex_web_search"
+                    ),
+                    "account_count": len(self.official_x_watchlist()),
+                    "lookback_hours": int(
+                        self.config.get("quality", {}).get(
+                            "official_x_lookback_hours", 48
+                        )
+                    ),
+                },
                 "editorial_instructions": [
                     "只保留能核验的事实和原始链接，不补写来源中没有的数字。",
                     "优先选择新变化、多源印证、官方更新和可转成内容或商业动作的信号。",
+                    "模型发布必须优先引用厂商官网、官方 Changelog、官方模型卡或官方 Release，不用媒体转述替代发布确认。",
+                    "先检查 sections.model_releases，再处理一般热点；说明模型类型、发布时间、可用渠道和仍需验证的限制。",
+                    "检查 sections.official_social_updates；若为空，按 sections.official_x_watchlist 搜索请求时间窗内的官方 X 帖子，并保留 x.com 原帖链接。",
                     "中文解释要具体，X 草稿按单帖、thread、视觉或视频脚本区分。",
                 ],
             },
@@ -2856,9 +3757,14 @@ class DailyBriefing:
                 "changes": changes,
                 "business_opportunities": business_opportunities,
                 "watchlist": watchlist,
+                "model_releases": model_releases,
+                "official_social_updates": official_social_updates,
+                "official_x_watchlist": self.official_x_watchlist(),
+                "official_model_watchlist": self.official_model_page_watchlist(),
+                "official_product_watchlist": self.official_product_page_watchlist(),
                 "x_topics": x_topics,
                 "x_drafts": x_drafts,
-                "ai_news": ai_news,
+                "ai_news": general_ai_news,
                 "web3_news": web3_news,
                 "venture_news": venture_news,
                 "github_projects": github_projects,
@@ -3040,6 +3946,10 @@ class DailyBriefing:
         ]
 
         self._append_text_highlights(lines, sections.get("changes", []), "相比昨天的新变化")
+        self._append_text_model_releases(lines, sections.get("model_releases", []))
+        self._append_text_official_social(
+            lines, sections.get("official_social_updates", [])
+        )
         self._append_text_highlights(lines, sections.get("must_read", []), "今日必须看")
         self._append_text_x_topics(lines, sections.get("x_topics", []))
         self._append_text_highlights(
@@ -3049,7 +3959,12 @@ class DailyBriefing:
         )
         self._append_text_highlights(lines, sections.get("watchlist", []), "持续跟踪")
         self._append_text_x_drafts(lines, sections.get("x_drafts", []))
-        self._append_news_section(lines, "AI 热点", sections["ai_news"])
+        general_ai_news = [
+            item
+            for item in sections["ai_news"]
+            if item.get("signal_type") != "model_release"
+        ]
+        self._append_news_section(lines, "AI 热点", general_ai_news)
         self._append_news_section(lines, "Web3 热点", sections["web3_news"])
         self._append_news_section(lines, "投资 & 经济", sections["venture_news"])
         self._append_project_section(lines, sections["github_projects"])
@@ -3079,6 +3994,14 @@ class DailyBriefing:
             sections.get("changes", []),
             "相比昨天的新变化",
         )
+        self._append_markdown_model_releases(
+            lines,
+            sections.get("model_releases", []),
+        )
+        self._append_markdown_official_social(
+            lines,
+            sections.get("official_social_updates", []),
+        )
         self._append_markdown_highlights(
             lines,
             sections.get("must_read", []),
@@ -3096,7 +4019,12 @@ class DailyBriefing:
             "持续跟踪",
         )
         self._append_markdown_x_drafts(lines, sections.get("x_drafts", []))
-        self._append_markdown_news(lines, "AI 热点", sections["ai_news"])
+        general_ai_news = [
+            item
+            for item in sections["ai_news"]
+            if item.get("signal_type") != "model_release"
+        ]
+        self._append_markdown_news(lines, "AI 热点", general_ai_news)
         self._append_markdown_news(lines, "Web3 热点", sections["web3_news"])
         self._append_markdown_news(lines, "投资 & 经济", sections["venture_news"])
 
@@ -3148,6 +4076,128 @@ class DailyBriefing:
             ]
         )
         return "\n".join(lines)
+
+    def _append_markdown_model_releases(
+        self,
+        lines: List[str],
+        releases: List[Dict[str, Any]],
+    ) -> None:
+        lines.extend(["## 最新模型发布", ""])
+        if not releases:
+            lines.extend(
+                ["- 本轮没有在官方来源中发现新的模型发布。", ""]
+            )
+            return
+
+        for index, item in enumerate(releases, 1):
+            title = item.get("title", "")
+            url = item.get("url", "")
+            title_text = f"[{title}]({url})" if url else title
+            meta = [
+                item.get("source", ""),
+                item.get("release_kind", "模型发布/更新"),
+                item.get("published_at", "")[:10] or "时间待确认",
+                "官方确认",
+            ]
+            lines.append(f"{index}. {title_text}")
+            lines.append(f"   {' · '.join(part for part in meta if part)}")
+            if item.get("summary"):
+                lines.append(f"   {item['summary']}")
+            official_source = item.get("official_source_url", "")
+            if official_source and official_source != url:
+                lines.append(f"   [厂商官方入口]({official_source})")
+        lines.append("")
+
+    def _append_text_model_releases(
+        self,
+        lines: List[str],
+        releases: List[Dict[str, Any]],
+    ) -> None:
+        lines.extend(
+            [
+                "━━━━━━━━━━━━━━━━━━",
+                f"最新模型发布（{len(releases)}条）",
+                "━━━━━━━━━━━━━━━━━━",
+                "",
+            ]
+        )
+        if not releases:
+            lines.extend(["本轮没有在官方来源中发现新的模型发布。", ""])
+            return
+        for index, item in enumerate(releases, 1):
+            lines.append(f"{index}. {item.get('title', '')}")
+            lines.append(
+                " · ".join(
+                    part
+                    for part in (
+                        item.get("source", ""),
+                        item.get("release_kind", "模型发布/更新"),
+                        item.get("published_at", "")[:10] or "时间待确认",
+                        "官方确认",
+                    )
+                    if part
+                )
+            )
+            if item.get("summary"):
+                lines.append(item["summary"])
+            if item.get("url"):
+                lines.append(item["url"])
+            lines.append("")
+
+    def _append_markdown_official_social(
+        self,
+        lines: List[str],
+        updates: List[Dict[str, Any]],
+    ) -> None:
+        lines.extend(["## 模型公司官方账号动态", ""])
+        if not updates:
+            lines.extend(
+                [
+                    "- Python 本轮未直接抓到官方 X 帖子；Codex 精编时会按官方账号清单继续检索。",
+                    "",
+                ]
+            )
+            return
+        for index, item in enumerate(updates, 1):
+            handle = clean_text(item.get("x_handle", ""))
+            label = f"@{handle}" if handle else item.get("source", "官方账号")
+            url = item.get("url", "")
+            title = f"[{label}]({url})" if url else label
+            date = item.get("published_at", "")[:10] or "时间待确认"
+            lines.append(f"{index}. {title} · {date} · 官方原帖")
+            if item.get("summary"):
+                lines.append(f"   {item['summary']}")
+        lines.append("")
+
+    def _append_text_official_social(
+        self,
+        lines: List[str],
+        updates: List[Dict[str, Any]],
+    ) -> None:
+        lines.extend(
+            [
+                "━━━━━━━━━━━━━━━━━━",
+                f"模型公司官方账号动态（{len(updates)}条）",
+                "━━━━━━━━━━━━━━━━━━",
+                "",
+            ]
+        )
+        if not updates:
+            lines.extend(
+                ["Python 本轮未直接抓到官方 X 帖子；Codex 会按官方账号清单继续检索。", ""]
+            )
+            return
+        for index, item in enumerate(updates, 1):
+            handle = clean_text(item.get("x_handle", ""))
+            label = f"@{handle}" if handle else item.get("source", "官方账号")
+            lines.append(
+                f"{index}. {label} · {item.get('published_at', '')[:10] or '时间待确认'}"
+            )
+            if item.get("summary"):
+                lines.append(item["summary"])
+            if item.get("url"):
+                lines.append(item["url"])
+            lines.append("")
 
     def _append_markdown_highlights(
         self,
