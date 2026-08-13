@@ -4,7 +4,7 @@
 
 # AI Daily Briefing
 
-给 AI/Web3 自媒体创作者用的每日情报与选题系统。它会从媒体、官方源、开发者社区、论文、模型榜单和开源生态收集候选信号，整理成带可点击链接的 Markdown 中文早报，并为 Codex 提供可二次精编的结构化候选包。
+给 AI/Web3 自媒体创作者用的每日情报与选题系统。它会从厂商官方源、产业基础设施、应用产品、资本市场、媒体、开发者社区、论文和开源生态收集候选信号，整理成带可点击链接的 Markdown 中文早报，并为 Codex 提供可二次精编的结构化候选包。
 
 > **主打用法：在 Codex 里直接输入 `$daily-briefing 生成今日早报`，不需要 Hermes，也不需要打开 Telegram。**
 
@@ -29,6 +29,8 @@ $daily-briefing 生成今日早报
 ```text
 $daily-briefing 检索过去 48 小时 AI 赛道爆火热点
 $daily-briefing 检索最近 24 小时最新模型发布，只看官方来源
+$daily-briefing 生成过去 24 小时 AI 全产业链简报
+$daily-briefing 查看最近 7 天 AI 应用落地和投融资
 $daily-briefing 生成本周简报复盘
 ```
 
@@ -50,20 +52,29 @@ outputs/briefing_YYYY-MM-DD.md
 
 - AI 热点：TechCrunch、OpenAI、Google DeepMind、Hugging Face 官方更新
 - 最新模型发布：独立追踪厂商官网、官方 Changelog、官方模型卡与开源权重首发
+- 产品与工具更新：跟踪 AI 产品、新功能、API、价格、工作流与重要集成，不要求必须伴随新模型
+- AI 产业链全景：按上游算力与基础设施、中游模型与平台、下游应用与服务组织信号
+- 应用层趋势：补充客户采用、用户增长、行业落地、定价、收入和真实商业化证据
+- AI 投融资：独立跟踪融资、并购、IPO 和财报，并标注关键数字是否经过官方或多源核验
+- 产业链联动：连接跨层共同主题，同时明确区分“主题关联”和真实合作或因果关系
+- 可能爆火的 AI 新闻：从公司公告、开源项目、研究突破、融资并购、行业争议和高热社区讨论中筛选传播候选
 - 官方模型组织：42 个官方 Hugging Face 组织，重点覆盖中美活跃模型团队
-- 官方发布页：18 个基础模型发布页 + 37 个 AI 编程、Agent、多模态和模型平台更新页
-- 官方账号雷达：61 个模型公司与 AI 产品 X 官方账号；Codex 可直接检索，配置 X API 后 Python 也能自动抓取
+- 官方发布页：19 个基础模型发布页 + 38 个 AI 编程、Agent、多模态和模型平台更新页
+- 官方账号雷达：62 个模型公司与 AI 产品 X 官方账号；Codex 可直接检索，配置 X API 后 Python 也能自动抓取
 - AI 编程/Agent：单独跟踪 Claude Code、Codex、Cursor、Copilot、Cognition/Devin、Replit、Manus
 - 多模态模型：单独跟踪 Runway、Stability AI、FLUX、Midjourney、Luma、Pika、Kling、Vidu
 - 补充信号：Hacker News、arXiv、Hugging Face Trending、AI HOT 精选
+- 产业信号：自动抓取 NVIDIA、AWS、Google Cloud、Product Hunt、Crunchbase News、TechCrunch Venture、Data Center Dynamics，并把机器之心等无稳定 RSS 的入口交给 Codex 检索
+- 中国优先核验：补充 36Kr、IT桔子、港交所披露等检索入口，应用采用和融资数字必须回到一手来源确认
 - 官方追踪：Anthropic sitemap，以及 Codex、Claude Code、Gemini CLI、Transformers Releases
 - Web3 热点：CoinDesk 最新加密新闻
 - 投资 & 经济：TechCrunch Venture 分类新闻
 - GitHub 优质项目：GitHub Trending
 - 今日选题素材：把热点转成中文内容选题
 - Codex 友好：支持 `--dry-run` 离线验证、单元测试和稳定输出目录
-- 每条新闻/项目都会跟一行简短中文解释，排版保持干净，不额外加标签
-- 开头自动生成 `相比昨天的新变化`、`最新模型发布`、`今日必须看`、`适合发 X`、`B端/商业机会` 和 `持续跟踪`
+- 每条新闻/项目的可点击标题下都会紧跟 1 至 2 句具体中文概括，说明谁做了什么、关键结果或影响；不写空泛模板，也不额外加“摘要”等标签
+- Codex 保存早报后会运行 Markdown 质检器，自动拦截缺少中文概括、只有评分/来源或命中空泛模板的条目
+- 开头自动生成 `相比昨天的新变化`、`AI 产业链全景`、`产业链联动`、`最新模型发布`、`产品与工具更新`、`应用层趋势`、`AI 投融资与商业化`、`可能爆火的 AI 新闻`、`今日必须看`、`适合发 X`、`B端/商业机会` 和 `持续跟踪`
 - 用内容价值、商业价值、个人匹配、时效、可信度五个维度排序，综合分最高 96，避免大量虚高满分
 - 可信度区分 `官方确认`、`多源印证`、`单源信号`
 - X 草稿覆盖单帖、thread、视觉/视频脚本三种形态
@@ -76,6 +87,15 @@ outputs/briefing_YYYY-MM-DD.md
 - 自动过滤 AI 板块跑题内容，并合并同一链接或相似标题的重复报道
 - 媒体与官方源交替混排，单个来源失败时保留其他可用板块
 - 早报结尾自动生成简短的中英双语 Star 引导，并保留唯一的官方仓库链接
+
+### 两维情报模型
+
+每条信息同时回答两个问题：
+
+- `industry_layer`：公司或产品位于上游、中游还是下游
+- `event_types`：这次发生了模型发布、产品更新、采用增长、融资、并购、财报还是政策变化
+
+资本不是产业链的“第四层”。例如，一家 AI 工作流公司完成融资后，仍属于下游应用，只是同时带有 `funding` 事件。这样既能看清整条产业链，也不会让融资新闻挤掉产品和应用信号。
 
 ## 当前官方覆盖
 
@@ -167,6 +187,27 @@ python briefing.py --format json --no-save
 # 输出 Codex 二次精编候选包
 python briefing.py --editorial-packet --output-file outputs/editorial_packet.json
 
+# 检查 Codex 精编后的每条链接是否紧跟具体中文概括
+python skills/daily-briefing/scripts/validate-briefing.py outputs/briefing_YYYY-MM-DD.md
+
+# 只看过去 48 小时的模型发布与模型更新
+python briefing.py --mode models --hours 48 --format markdown
+
+# 只看过去 7 天 AI 视频赛道的产品与功能更新
+python briefing.py --mode products --focus "AI视频" --hours 168 --format markdown
+
+# 只看过去 24 小时的应用落地、采用和增长信号
+python briefing.py --mode applications --hours 24 --format markdown
+
+# 只看最近 7 天 AI 融资、并购、IPO 和财报
+python briefing.py --mode funding --hours 168 --format markdown
+
+# 生成包含上中下游、跨层联动、应用和资本事件的产业简报
+python briefing.py --mode industry --hours 24 --format markdown
+
+# 只看过去 24 小时可能爆火的 Agent 新闻
+python briefing.py --mode hotspots --focus "Agent" --hours 24 --format markdown
+
 # 临时调试，不读写跨日历史
 python briefing.py --no-save --no-history
 
@@ -225,6 +266,24 @@ sources:
     - name: "QwenCloud"
       url: "https://docs.qwencloud.com/changelog/models"
       parser: "qwen"
+  industry_feeds:
+    - name: "NVIDIA Blog"
+      url: "https://blogs.nvidia.com/feed/"
+      track: "infrastructure"
+      layer_hint: "upstream"
+      authority: "official"
+    - name: "Product Hunt"
+      url: "https://www.producthunt.com/feed"
+      track: "applications"
+      layer_hint: "downstream"
+      authority: "community"
+      discovery_only: true
+    - name: "Crunchbase News"
+      url: "https://news.crunchbase.com/feed/"
+      track: "capital"
+      layer_hint: "downstream"
+      authority: "media"
+      discovery_only: true
   aihot: "https://aihot.today/ai-news"
 
 output:
@@ -238,6 +297,10 @@ limits:
   official_model_releases_per_org: 2
   model_changelog_per_source: 3
   model_releases: 8
+  industry_chain_per_layer: 3
+  application_trends: 6
+  ai_funding: 6
+  cross_layer_connections: 3
   web3_news: 3
   venture_news: 5
   github_projects: 10
@@ -246,6 +309,7 @@ limits:
 quality:
   max_feed_age_days: 10
   model_release_max_age_days: 14
+  funding_min_source_count: 2
   similarity_threshold: 0.76
   min_similarity_tokens: 4
 
@@ -266,7 +330,13 @@ history:
 
 ```text
 相比昨天的新变化
-最新模型发布
+AI 产业链全景
+产业链联动
+最新模型发布与更新
+产品与工具更新
+应用层趋势
+可能爆火的 AI 新闻
+AI 投融资与商业化
 模型公司官方账号动态
 今日必须看
 适合发 X 的选题

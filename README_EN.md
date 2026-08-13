@@ -4,7 +4,11 @@
 
 # AI Daily Briefing
 
-A daily intelligence and topic-discovery system for AI/Web3 content creators. It collects candidate signals from media outlets, official sources, developer communities, research papers, model rankings, and open-source ecosystems, then turns them into a source-linked Markdown briefing. It also produces a structured editorial packet that Codex can refine into a polished final edition.
+A daily intelligence and topic-discovery system for AI/Web3 content creators. It collects candidate signals from first-party vendors, infrastructure providers, application products, capital markets, media outlets, developer communities, research papers, and open-source ecosystems, then turns them into a source-linked Markdown briefing. It also produces a structured editorial packet that Codex can refine into a polished final edition.
+
+Every retained item is followed immediately by a concise Chinese explanation covering who did what and the most important result or impact, so readers can understand the event without opening the source link.
+
+After Codex saves the briefing, a bundled Markdown validator rejects linked items that lack a Chinese explanation, contain only metadata, or use known generic filler.
 
 > **Recommended workflow: enter `$daily-briefing Generate today's briefing` directly in Codex. No Hermes or Telegram required.**
 
@@ -29,6 +33,8 @@ You can also specify the scope:
 ```text
 $daily-briefing Find the hottest AI topics from the past 48 hours
 $daily-briefing Find model releases from the past 24 hours using official sources only
+$daily-briefing Generate a full AI industry-chain briefing for the past 24 hours
+$daily-briefing Find AI application adoption and funding from the past seven days
 $daily-briefing Generate this week's briefing review
 ```
 
@@ -50,12 +56,20 @@ If a Skill with the same name already exists, explicitly back it up and replace 
 
 - AI news from TechCrunch plus official OpenAI, Google DeepMind, and Hugging Face updates
 - A dedicated latest-model section backed by vendor sites, official changelogs, official model cards, and first-party open-weight releases
+- Product and tool updates covering new AI features, APIs, pricing, workflows, and major integrations even when no new model is involved
+- A full industry-chain view covering upstream compute and infrastructure, midstream models and platforms, and downstream applications and services
+- Application-layer signals covering customer adoption, user growth, industry deployment, pricing, revenue, and commercial traction
+- AI funding coverage for financings, acquisitions, IPOs, and earnings, with explicit verification status for material figures
+- Cross-layer connection cards that link shared themes without claiming an unsupported partnership or causal relationship
+- Potentially viral AI stories selected from company announcements, open-source projects, research breakthroughs, funding, industry disputes, and fast-rising community discussions
 - Tracking for 42 official Hugging Face organizations, focused on active US and China model teams
-- 18 foundation-model release pages plus 37 official update pages for coding, agents, multimodal models, and model platforms
-- An official-account radar for 61 model-company and AI-product X accounts; Codex can search them directly, while Python can use the optional X API integration
+- 19 foundation-model release pages plus 38 official update pages for coding, agents, multimodal models, and model platforms
+- An official-account radar for 62 model-company and AI-product X accounts; Codex can search them directly, while Python can use the optional X API integration
 - Dedicated AI coding and agent coverage for Claude Code, Codex, Cursor, Copilot, Cognition/Devin, Replit, and Manus
 - Dedicated multimodal coverage for Runway, Stability AI, FLUX, Midjourney, Luma, Pika, Kling, and Vidu
 - Additional signals from Hacker News, arXiv, Hugging Face Trending, and AI HOT
+- Automated industry feeds from NVIDIA, AWS, Google Cloud, Product Hunt, Crunchbase News, TechCrunch Venture, and Data Center Dynamics, with sources such as 机器之心 routed to Codex when no stable RSS feed is available
+- China-first verification routes that include 36Kr, IT桔子, and HKEX disclosures; adoption and funding figures must still be confirmed with a primary source
 - Official tracking through the Anthropic sitemap and releases from Codex, Claude Code, Gemini CLI, and Transformers
 - Web3 news from CoinDesk
 - Venture and economic signals from TechCrunch Venture
@@ -63,7 +77,7 @@ If a Skill with the same name already exists, explicitly back it up and replace 
 - Daily topic ideas that turn news into publishable Chinese content angles
 - Codex-friendly offline validation with `--dry-run`, unit tests, and stable output paths
 - A concise Chinese explanation for every news item and project, without repetitive labels
-- Opening sections for changes since yesterday, latest model releases, must-read items, X opportunities, B2B opportunities, and watchlist signals
+- Opening sections for changes since yesterday, the AI industry chain, cross-layer connections, model releases, product updates, application trends, AI funding and commercialization, potentially viral stories, must-read items, X opportunities, B2B opportunities, and watchlist signals
 - Ranking across content value, business value, personal relevance, timeliness, and credibility, with calibrated scores instead of inflated perfect ratings
 - Confidence labels: `Officially confirmed`, `Corroborated by multiple sources`, and `Single-source signal`
 - X drafts in three formats: single post, thread, and visual/video script
@@ -76,6 +90,15 @@ If a Skill with the same name already exists, explicitly back it up and replace 
 - Automatic filtering of off-topic AI stories and merging of duplicate links or similar headlines
 - Alternating media and official sources, with graceful degradation when one source fails
 - A concise bilingual Star invitation at the end of each briefing, using the single canonical repository link
+
+### Two-Axis Intelligence Model
+
+Every item answers two separate questions:
+
+- `industry_layer`: whether the company or product sits upstream, midstream, or downstream
+- `event_types`: whether the event is a model release, product update, adoption signal, funding, acquisition, earnings report, or policy change
+
+Capital is not a fourth industry layer. A downstream AI workflow company remains downstream after a financing; it simply gains a `funding` event type. This keeps the industry map readable without letting capital news displace product and adoption signals.
 
 ## Current First-Party Coverage
 
@@ -167,6 +190,24 @@ python briefing.py --format json --no-save
 # Generate a Codex-ready editorial packet
 python briefing.py --editorial-packet --output-file outputs/editorial_packet.json
 
+# Model launches and updates from the past 48 hours
+python briefing.py --mode models --hours 48 --format markdown
+
+# AI-video product and feature updates from the past seven days
+python briefing.py --mode products --focus "AI video" --hours 168 --format markdown
+
+# Application adoption and growth signals from the past 24 hours
+python briefing.py --mode applications --hours 24 --format markdown
+
+# AI financings, acquisitions, IPOs, and earnings from the past seven days
+python briefing.py --mode funding --hours 168 --format markdown
+
+# Full upstream/midstream/downstream industry view with cross-layer connections
+python briefing.py --mode industry --hours 24 --format markdown
+
+# Potentially viral Agent stories from the past 24 hours
+python briefing.py --mode hotspots --focus "Agent" --hours 24 --format markdown
+
 # Debug without reading or writing cross-day history
 python briefing.py --no-save --no-history
 
@@ -225,6 +266,24 @@ sources:
     - name: "QwenCloud"
       url: "https://docs.qwencloud.com/changelog/models"
       parser: "qwen"
+  industry_feeds:
+    - name: "NVIDIA Blog"
+      url: "https://blogs.nvidia.com/feed/"
+      track: "infrastructure"
+      layer_hint: "upstream"
+      authority: "official"
+    - name: "Product Hunt"
+      url: "https://www.producthunt.com/feed"
+      track: "applications"
+      layer_hint: "downstream"
+      authority: "community"
+      discovery_only: true
+    - name: "Crunchbase News"
+      url: "https://news.crunchbase.com/feed/"
+      track: "capital"
+      layer_hint: "downstream"
+      authority: "media"
+      discovery_only: true
   aihot: "https://aihot.today/ai-news"
 
 output:
@@ -238,6 +297,10 @@ limits:
   official_model_releases_per_org: 2
   model_changelog_per_source: 3
   model_releases: 8
+  industry_chain_per_layer: 3
+  application_trends: 6
+  ai_funding: 6
+  cross_layer_connections: 3
   web3_news: 3
   venture_news: 5
   github_projects: 10
@@ -246,6 +309,7 @@ limits:
 quality:
   max_feed_age_days: 10
   model_release_max_age_days: 14
+  funding_min_source_count: 2
   similarity_threshold: 0.76
   min_similarity_tokens: 4
 
@@ -266,7 +330,13 @@ Default Markdown structure:
 
 ```text
 Changes Since Yesterday
-Latest Model Releases
+AI Industry Chain
+Cross-Layer Connections
+Latest Model Releases and Updates
+Product and Tool Updates
+Application-Layer Trends
+Potentially Viral AI News
+AI Funding and Commercialization
 Official Model-Company Accounts
 Must Read
 Suitable for X

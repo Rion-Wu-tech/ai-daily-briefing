@@ -30,7 +30,13 @@ skills/daily-briefing/scripts/run-daily-briefing.sh \
   --output-file outputs/editorial_packet.json
 ```
 
-先由 Python 抓取、去重、打分并记录跨日历史，再由当前 Codex 模型读取候选包，完成最终选稿、中文解释和 X 草稿。不得补写候选包里不存在的事实或数字，所有条目保留原始可点击链接。
+先由 Python 抓取、去重、打分并记录跨日历史，再由当前 Codex 模型读取候选包，完成最终选稿、中文解释和 X 草稿。不得补写候选包里不存在的事实或数字，所有条目保留原始可点击链接。每个可点击条目下必须先用 1 至 2 句中文说明谁做了什么、关键结果或影响，不能只给链接、来源或评分。
+
+保存 Codex 精编版后运行概括质检：
+
+```bash
+python skills/daily-briefing/scripts/validate-briefing.py outputs/briefing_YYYY-MM-DD.md
+```
 
 如果只是验证环境是否能跑：
 
@@ -47,14 +53,15 @@ python briefing.py --format text
 ## 输出结构
 
 1. 相比昨天的新变化
-2. 最新模型发布
-3. 模型公司官方账号动态
-4. 今日必须看
-5. 适合发 X 的选题
-6. B端/商业机会
-7. 持续跟踪
-8. X 草稿
-9. AI / Web3 / 投资 / GitHub 明细
+2. AI 产业链全景与跨层联动
+3. 最新模型发布与产品更新
+4. 应用层趋势与 AI 投融资
+5. 可能爆火的 AI 新闻
+6. 模型公司官方账号动态
+7. 今日必须看
+8. 适合发 X 的选题与 B端/商业机会
+9. 持续跟踪与 X 草稿
+10. AI / Web3 / 投资 / GitHub 明细
 
 ## 反馈闭环
 
@@ -78,7 +85,7 @@ python briefing.py --weekly-review
 
 周复盘包含持续信号、反馈偏好、来源成功率和下周动作。
 
-默认输出 Markdown，新闻标题和项目名都带可点击链接。排序同时参考内容价值、商业价值、个人匹配、时效和可信度；可信度标注为 `官方确认`、`多源印证` 或 `单源信号`。每条保留简短中文解释，不加“摘要”“一句话介绍”“中文总结”等前缀。
+默认输出 Markdown，新闻标题和项目名都带可点击链接。排序同时参考内容价值、商业价值、个人匹配、时效和可信度；可信度标注为 `官方确认`、`多源印证` 或 `单源信号`。每条保留具体中文概括，不加“摘要”“一句话介绍”“中文总结”等前缀；质检器会拦截缺少概括、只有元数据或命中空泛模板的条目。
 
 ## 重要规则
 
@@ -92,11 +99,13 @@ python briefing.py --weekly-review
 ## 数据源
 
 - AI 热点：TechCrunch + OpenAI、Google DeepMind、Hugging Face 官方 RSS
-- 模型发布：厂商官方 RSS/Sitemap/Changelog、18 个基础模型发布页，以及 42 个中美为主的官方 Hugging Face 组织页
-- 官方账号：61 个中美模型公司和 AI 产品 X 官方账号；有 X API 时自动抓取，否则由 Codex 按清单联网检索
+- 模型发布：厂商官方 RSS/Sitemap/Changelog、19 个基础模型发布页，以及 42 个中美为主的官方 Hugging Face 组织页
+- 官方账号：62 个中美模型公司和 AI 产品 X 官方账号；有 X API 时自动抓取，否则由 Codex 按清单联网检索
 - AI 编程/Agent：Claude Code、Codex、Cursor、GitHub Copilot、Cognition/Devin、Replit 等官方 Changelog、Release 与 X 账号
 - 多模态模型：Runway、Stability AI、Black Forest Labs、Midjourney、Luma、Pika、Kling、Vidu 等官方发布页与 X 账号
 - 补充信号：Hacker News、arXiv、Hugging Face Trending、AI HOT
+- 产业信号：NVIDIA、AWS、Google Cloud、Data Center Dynamics、Product Hunt、Crunchbase News 和 TechCrunch Venture
+- 应用与资本：客户采用、用户增长、定价、收入、融资、并购、IPO 和财报；关键商业数字必须回到一手来源核验
 - 官方追踪：Anthropic sitemap、指定 GitHub Releases
 - Web3 热点：CoinDesk
 - 投资 & 经济：TechCrunch Venture 分类
