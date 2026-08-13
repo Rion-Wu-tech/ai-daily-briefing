@@ -54,6 +54,112 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         ],
         "web3_news": "https://www.coindesk.com/",
         "venture_news": "https://techcrunch.com/category/venture/",
+        "industry_feeds": [
+            {
+                "name": "NVIDIA Blog",
+                "url": "https://blogs.nvidia.com/feed/",
+                "track": "infrastructure",
+                "country": "US",
+                "layer_hint": "upstream",
+                "authority": "official",
+            },
+            {
+                "name": "AWS Machine Learning Blog",
+                "url": "https://aws.amazon.com/blogs/machine-learning/feed/",
+                "track": "infrastructure",
+                "country": "US",
+                "layer_hint": "upstream",
+                "authority": "official",
+            },
+            {
+                "name": "Google Cloud AI",
+                "url": "https://cloudblog.withgoogle.com/products/ai-machine-learning/rss/",
+                "track": "infrastructure",
+                "country": "US",
+                "layer_hint": "midstream",
+                "authority": "official",
+            },
+            {
+                "name": "Product Hunt",
+                "url": "https://www.producthunt.com/feed",
+                "track": "applications",
+                "country": "GLOBAL",
+                "layer_hint": "downstream",
+                "authority": "community",
+                "discovery_only": True,
+            },
+            {
+                "name": "Crunchbase News",
+                "url": "https://news.crunchbase.com/feed/",
+                "track": "capital",
+                "country": "GLOBAL",
+                "layer_hint": "downstream",
+                "authority": "media",
+                "discovery_only": True,
+            },
+            {
+                "name": "TechCrunch Venture RSS",
+                "url": "https://techcrunch.com/category/venture/feed/",
+                "track": "capital",
+                "country": "GLOBAL",
+                "layer_hint": "downstream",
+                "authority": "media",
+                "discovery_only": True,
+            },
+            {
+                "name": "Data Center Dynamics",
+                "url": "https://www.datacenterdynamics.com/en/rss/",
+                "track": "infrastructure",
+                "country": "GLOBAL",
+                "layer_hint": "upstream",
+                "authority": "media",
+                "discovery_only": True,
+            },
+        ],
+        "industry_watchlist": [
+            {"name": "AMD Newsroom", "track": "infrastructure", "country": "US", "url": "https://www.amd.com/en/newsroom.html"},
+            {"name": "TSMC News", "track": "infrastructure", "country": "TW", "url": "https://pr.tsmc.com/english/news"},
+            {"name": "AWS What's New", "track": "infrastructure", "country": "US", "url": "https://aws.amazon.com/new/"},
+            {"name": "Azure Updates", "track": "infrastructure", "country": "US", "url": "https://azure.microsoft.com/en-us/updates/"},
+            {"name": "机器之心", "track": "applications", "country": "CN", "url": "https://www.jiqizhixin.com/"},
+            {"name": "36Kr", "track": "capital", "country": "CN", "url": "https://36kr.com/"},
+            {"name": "IT桔子", "track": "capital", "country": "CN", "url": "https://www.itjuzi.com/"},
+            {"name": "SEC EDGAR", "track": "capital", "country": "US", "url": "https://www.sec.gov/search-filings"},
+            {"name": "HKEXnews", "track": "capital", "country": "CN", "url": "https://www1.hkexnews.hk/"},
+            {"name": "Dealroom Signals", "track": "capital", "country": "GLOBAL", "url": "https://dealroom.co/api/live-signals"},
+        ],
+        "industry_searches": [
+            {
+                "name": "中国 AI 应用与采用",
+                "track": "applications",
+                "country": "CN",
+                "query": "中国 AI 产品 上线 客户 采用 用户 增长 商业化",
+            },
+            {
+                "name": "全球 AI 应用与企业采用",
+                "track": "applications",
+                "country": "GLOBAL",
+                "query": "AI product launch enterprise adoption customers revenue",
+            },
+            {
+                "name": "中国 AI 投融资",
+                "track": "capital",
+                "country": "CN",
+                "query": "中国 人工智能 融资 并购 战略投资 估值 营收",
+            },
+            {
+                "name": "全球 AI 投融资",
+                "track": "capital",
+                "country": "GLOBAL",
+                "query": "AI startup funding acquisition valuation revenue",
+            },
+            {
+                "name": "AI 算力与基础设施",
+                "track": "infrastructure",
+                "country": "GLOBAL",
+                "query": "AI chip GPU data center cloud infrastructure capex inference cost",
+            },
+        ],
         "github_trending": "https://github.com/trending",
         "hacker_news": {
             "url": "https://hn.algolia.com/api/v1/search",
@@ -121,7 +227,8 @@ DEFAULT_CONFIG: Dict[str, Any] = {
             {"name": "DeepSeek API Updates", "country": "CN", "url": "https://api-docs.deepseek.com/updates/"},
             {"name": "Z.ai New Releases", "country": "CN", "url": "https://docs.bigmodel.cn/cn/update/new-releases"},
             {"name": "Kimi What's New", "country": "CN", "url": "https://www.kimi.com/code/docs/kimi-code/whats-new.html"},
-            {"name": "MiniMax News", "country": "CN", "url": "https://www.minimaxi.com/news"},
+            {"name": "MiniMax Model Releases", "country": "CN", "url": "https://platform.minimaxi.com/docs/release-notes/models"},
+            {"name": "MiniMax Research", "country": "CN", "url": "https://www.minimaxi.com/news"},
             {"name": "Tencent Hunyuan", "country": "CN", "url": "https://hunyuan.tencent.com/"},
             {"name": "ByteDance Seed Blog", "country": "CN", "url": "https://seed.bytedance.com/en/blog"},
             {"name": "StepFun", "country": "CN", "url": "https://www.stepfun.com/"},
@@ -150,6 +257,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
             {"name": "Manus Blog", "country": "CN", "category": "agent", "url": "https://manus.im/blog"},
             {"name": "Kling AI", "country": "CN", "category": "video model", "url": "https://kling.ai/"},
             {"name": "Vidu", "country": "CN", "category": "video model", "url": "https://www.vidu.com/"},
+            {"name": "Baidu MeDo", "country": "CN", "category": "AI app builder", "url": "https://intl.cloud.baidu.com/en/doc/MIAODA/index.html"},
             {"name": "Meituan LongCat", "country": "CN", "category": "model", "url": "https://longcat.chat/"},
             {"name": "IBM Granite", "country": "US", "category": "model", "url": "https://www.ibm.com/granite"},
             {"name": "Salesforce AI Research", "country": "US", "category": "model research", "url": "https://www.salesforce.com/ai-research/"},
@@ -187,6 +295,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
             {"name": "ByteDance Seed", "handle": "ByteDanceSeed", "country": "CN"},
             {"name": "Tencent Hunyuan", "handle": "TencentHunyuan", "country": "CN"},
             {"name": "Baidu", "handle": "Baidu_Inc", "country": "CN"},
+            {"name": "Baidu MeDo", "handle": "Medo_CodeFree", "country": "CN", "category": "AI app builder"},
             {"name": "01.AI", "handle": "01AI_Yi", "country": "CN"},
             {"name": "Baichuan AI", "handle": "BaichuanAI", "country": "CN"},
             {"name": "Huawei Cloud / Pangu", "handle": "HuaweiCloud1", "country": "CN"},
@@ -281,6 +390,14 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "official_model_releases_per_org": 2,
         "model_changelog_per_source": 3,
         "model_releases": 8,
+        "product_updates": 8,
+        "viral_ai_news": 8,
+        "industry_chain_per_layer": 3,
+        "application_trends": 6,
+        "ai_funding": 6,
+        "industry_feed_per_source": 4,
+        "industry_signals": 24,
+        "cross_layer_connections": 3,
         "official_x_updates": 12,
         "official_social_updates": 8,
         "aihot": 5,
@@ -304,6 +421,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "max_feed_age_days": 10,
         "model_release_max_age_days": 14,
         "official_x_lookback_hours": 48,
+        "funding_min_source_count": 2,
         "similarity_threshold": 0.76,
         "min_similarity_tokens": 4,
     },
@@ -522,6 +640,47 @@ SAMPLE_DATA: Dict[str, List[Dict[str, str]]] = {
             "source": "Sample",
             "summary": "资本继续押注 AI 自动化，B 端工作流仍是商业化主线之一。",
         }
+    ],
+    "industry_signals": [
+        {
+            "title": "NVIDIA expands AI inference infrastructure for enterprise workloads",
+            "url": "https://example.com/nvidia-inference-infrastructure",
+            "time": "示例数据",
+            "source": "NVIDIA Blog",
+            "summary": "New inference infrastructure targets lower deployment cost and higher enterprise throughput.",
+            "official": True,
+            "industry_track": "infrastructure",
+            "industry_layer_hint": "upstream",
+            "country": "US",
+            "source_authority": "official",
+        },
+        {
+            "title": "Creator workflow product adds enterprise deployment and paid collaboration",
+            "url": "https://example.com/creator-product-adoption",
+            "time": "示例数据",
+            "source": "Official Product Blog",
+            "summary": "The AI creator product is now used by enterprise teams and adds paid collaboration workflows.",
+            "official": True,
+            "industry_track": "applications",
+            "industry_layer_hint": "downstream",
+            "country": "CN",
+            "source_authority": "official",
+        },
+        {
+            "title": "AI workflow startup raises $80M Series B for enterprise expansion",
+            "url": "https://example.com/ai-workflow-series-b",
+            "time": "示例数据",
+            "source": "Company Newsroom / Lead Investor",
+            "summary": "The company raised $80M in a Series B round to expand its enterprise AI workflow product.",
+            "official": True,
+            "industry_track": "capital",
+            "industry_layer_hint": "downstream",
+            "country": "US",
+            "source_authority": "official",
+            "related_links": [
+                {"source": "Lead Investor", "url": "https://example.com/investor-ai-workflow-series-b"}
+            ],
+        },
     ],
     "github_projects": [
         {
@@ -744,10 +903,18 @@ class DailyBriefing:
         config_path: str = "config.yaml",
         dry_run: bool = False,
         history_enabled: Optional[bool] = None,
+        briefing_mode: str = "all",
+        focus: str = "",
+        lookback_hours: Optional[int] = None,
     ):
         self.config_path = Path(config_path)
         self.config = self._load_config(self.config_path)
         self.dry_run = dry_run
+        self.briefing_mode = clean_text(briefing_mode).lower() or "all"
+        self.focus = clean_text(focus)
+        self.lookback_hours = (
+            max(1, int(lookback_hours)) if lookback_hours is not None else None
+        )
         self.session = requests.Session()
         self.session.headers.update(
             {"User-Agent": self.config["request"]["user_agent"]}
@@ -782,6 +949,97 @@ class DailyBriefing:
 
     def _limit(self, key: str) -> int:
         return int(self.config.get("limits", {}).get(key, DEFAULT_CONFIG["limits"][key]))
+
+    def _within_requested_window(self, item: Dict[str, Any]) -> bool:
+        if self.lookback_hours is None:
+            return True
+        published = self._parse_feed_datetime(
+            clean_text(item.get("published_at", ""))
+        )
+        if published is None:
+            published = self._parse_feed_datetime(clean_text(item.get("time", "")))
+        if published is None:
+            return clean_text(item.get("time", "")) in {"今日", "刚刚", "示例数据"}
+        age = datetime.now(timezone.utc) - published.astimezone(timezone.utc)
+        return 0 <= age.total_seconds() <= self.lookback_hours * 3600
+
+    def _focus_keywords(self) -> List[str]:
+        if not self.focus:
+            return []
+        aliases = {
+            "视频": ["video", "视频", "multimodal", "多模态", "wan", "kling", "vidu", "runway"],
+            "图像": ["image", "图像", "视觉", "midjourney", "flux", "stable diffusion"],
+            "编程": ["coding", "code", "编程", "codex", "claude code", "cursor", "copilot", "developer"],
+            "agent": ["agent", "agentic", "智能体", "workflow", "工作流", "tool use"],
+            "智能体": ["agent", "agentic", "智能体", "workflow", "工作流", "tool use"],
+            "医疗": ["health", "healthcare", "medical", "clinical", "医疗", "健康", "药物"],
+            "金融": ["finance", "financial", "fintech", "trading", "金融", "投研", "交易"],
+            "教育": ["education", "learning", "tutor", "教育", "学习", "教学"],
+            "机器人": ["robot", "robotics", "embodied", "机器人", "具身"],
+            "芯片": ["chip", "semiconductor", "gpu", "inference", "芯片", "算力", "推理"],
+            "搜索": ["search", "retrieval", "rag", "搜索", "检索"],
+            "开源": ["open source", "open-source", "github", "开源", "open weights", "开放权重"],
+        }
+        parts = [
+            clean_text(part).lower()
+            for part in re.split(r"[,，/、|]+", self.focus)
+            if clean_text(part)
+        ]
+        keywords: List[str] = []
+        for part in parts:
+            expanded = [part]
+            for alias, values in aliases.items():
+                if alias in part:
+                    expanded.extend(values)
+            for keyword in expanded:
+                if keyword not in keywords:
+                    keywords.append(keyword)
+        return keywords
+
+    def _matches_request(self, item: Dict[str, Any]) -> bool:
+        if not self._within_requested_window(item):
+            return False
+        if self.briefing_mode == "models":
+            if item.get("signal_type") != "model_release":
+                return False
+        elif self.briefing_mode == "products":
+            if not self._looks_like_product_update(item):
+                return False
+        elif self.briefing_mode == "applications":
+            if not (
+                item.get("industry_layer") == "downstream"
+                and (
+                    item.get("industry_track") == "applications"
+                    or bool(
+                        set(item.get("event_types", []))
+                        & {"application", "product_update", "adoption", "partnership", "pricing"}
+                    )
+                )
+            ):
+                return False
+        elif self.briefing_mode == "funding":
+            if not self._looks_like_ai_funding(item):
+                return False
+        elif self.briefing_mode == "industry":
+            if item.get("section") == "web3" or not self._is_ai_relevant(item):
+                return False
+        elif self.briefing_mode == "hotspots":
+            if item.get("section") not in {"ai", "github", "venture"}:
+                return False
+        focus_keywords = self._focus_keywords()
+        if not focus_keywords:
+            return True
+        haystack = " ".join(
+            [
+                item_title(item),
+                clean_text(item.get("summary", "")),
+                clean_text(item.get("summary_cn", "")),
+                clean_text(item.get("description", "")),
+                clean_text(item.get("category", "")),
+                " ".join(item.get("tags", [])),
+            ]
+        ).lower()
+        return has_any_keyword(haystack, focus_keywords)
 
     def _get_soup(self, url: str) -> BeautifulSoup:
         response = self.session.get(
@@ -947,12 +1205,136 @@ class DailyBriefing:
             self._record_source_health(source, started_at, 0, str(exc))
             return []
 
+    def industry_source_watchlist(self) -> List[Dict[str, str]]:
+        rows = self.config.get("sources", {}).get("industry_watchlist", [])
+        if not isinstance(rows, list):
+            return []
+        return [dict(row) for row in rows if isinstance(row, dict) and row.get("url")]
+
+    def industry_search_groups(self) -> List[Dict[str, Any]]:
+        rows = self.config.get("sources", {}).get("industry_searches", [])
+        if not isinstance(rows, list):
+            return []
+        window = self.lookback_hours or 24
+        groups: List[Dict[str, Any]] = []
+        for row in rows:
+            if not isinstance(row, dict) or not clean_text(row.get("query", "")):
+                continue
+            track = clean_text(row.get("track", "industry"))
+            verification_rule = (
+                "融资、并购和收入数字必须回到公司、投资方或监管披露核验。"
+                if track == "capital"
+                else "产品采用和增长数字必须回到公司、客户或可复查的结构化页面核验。"
+                if track == "applications"
+                else "算力、芯片和资本开支数字必须回到厂商公告、云更新或监管披露核验。"
+            )
+            groups.append(
+                {
+                    "name": clean_text(row.get("name", "产业信号检索")),
+                    "track": track,
+                    "country": clean_text(row.get("country", "GLOBAL")),
+                    "lookback_hours": window,
+                    "query": f"{clean_text(row['query'])} past {window} hours",
+                    "verification_rule": verification_rule,
+                }
+            )
+        groups.sort(
+            key=lambda row: (
+                {"CN": 0, "US": 1, "GLOBAL": 2}.get(row.get("country", ""), 3),
+                row.get("track", ""),
+            )
+        )
+        return groups
+
+    def _fetch_industry_feed(
+        self,
+        source_config: Dict[str, Any],
+        limit: int,
+    ) -> List[Dict[str, Any]]:
+        source = clean_text(source_config.get("name", "产业信号源"))
+        url = clean_text(source_config.get("url", ""))
+        if not url:
+            return []
+        started_at = monotonic()
+        try:
+            rows = self._parse_feed_articles(self._get_content(url), source, limit * 3)
+            enriched: List[Dict[str, Any]] = []
+            for row in rows:
+                title_lower = item_title(row).lower()
+                off_topic_markers = (
+                    "best ceo",
+                    "glassdoor",
+                    "workplace award",
+                    "great place to work",
+                    "employee ranking",
+                )
+                if has_any_keyword(title_lower, off_topic_markers):
+                    continue
+                row["industry_track"] = clean_text(
+                    source_config.get("track", "applications")
+                )
+                row["industry_layer_hint"] = clean_text(
+                    source_config.get("layer_hint", "")
+                )
+                row["country"] = clean_text(
+                    source_config.get("country", "GLOBAL")
+                )
+                row["source_authority"] = clean_text(
+                    source_config.get("authority", "media")
+                )
+                row["discovery_only"] = bool(
+                    source_config.get("discovery_only", False)
+                )
+                if row["source_authority"] == "official":
+                    row["official"] = True
+                    self._mark_official_model_release(row)
+                if not self._is_ai_relevant(row):
+                    continue
+                enriched.append(row)
+                if len(enriched) >= limit:
+                    break
+            self._record_source_health(source, started_at, len(enriched))
+            self._log(f"获取到 {len(enriched)} 条 {source} 产业信号")
+            return enriched
+        except Exception as exc:
+            self._record_source_health(source, started_at, 0, str(exc))
+            self._log(f"抓取 {source} 产业信号失败: {exc}")
+            return []
+
+    def fetch_industry_signals(self) -> List[Dict[str, Any]]:
+        limit = self._limit("industry_signals")
+        if limit <= 0:
+            return []
+        if self.dry_run:
+            return self._sample("industry_signals", limit)
+
+        sources = self.config.get("sources", {}).get("industry_feeds", [])
+        configs = [row for row in sources if isinstance(row, dict) and row.get("url")]
+        if not configs:
+            return []
+        per_source = self._limit("industry_feed_per_source")
+        with ThreadPoolExecutor(max_workers=min(6, len(configs))) as executor:
+            groups = list(
+                executor.map(
+                    lambda row: self._fetch_industry_feed(row, per_source),
+                    configs,
+                )
+            )
+        rows = self._round_robin(groups, sum(len(group) for group in groups))
+        return self._dedupe_items(rows)[:limit]
+
     def _looks_like_model_release(self, item: Dict[str, Any]) -> bool:
         if item.get("signal_type") == "model_release":
             return True
         title = item_title(item).lower()
-        model_markers = (
-            "model",
+        text = " ".join(
+            [
+                title,
+                clean_text(item.get("summary", "")),
+                clean_text(item.get("summary_cn", "")),
+            ]
+        ).lower()
+        specific_model_markers = (
             "gpt",
             "claude",
             "gemini",
@@ -971,23 +1353,43 @@ class DailyBriefing:
             "speech-to-text",
             "image generation",
             "video generation",
-            "模型",
         )
         release_markers = (
             "introducing",
             "announce",
             "launch",
             "release",
+            "update",
+            "upgrade",
+            "improve",
+            "new version",
+            "price",
+            "pricing",
+            "api access",
+            "deprecation",
+            "deprecated",
+            "retire",
             "available",
             "now in",
             "发布",
             "推出",
             "上线",
             "开源",
+            "更新",
+            "升级",
+            "增强",
+            "新版",
+            "价格",
+            "降价",
+            "api 开放",
+            "下线",
+            "弃用",
         )
-        if not has_any_keyword(title, model_markers):
+        has_explicit_model_title = has_any_keyword(title, ("model", "模型"))
+        has_named_model = has_any_keyword(text, specific_model_markers)
+        if not (has_explicit_model_title or has_named_model):
             return False
-        if has_any_keyword(title, release_markers):
+        if has_any_keyword(text, release_markers):
             return True
         versioned_model = re.search(
             r"(?<![a-z0-9])"
@@ -1033,6 +1435,13 @@ class DailyBriefing:
                 for source in self.config.get("sources", {}).get(key, [])
                 if isinstance(source, dict) and source.get("name")
             )
+        names.update(
+            clean_text(source.get("name", ""))
+            for source in self.config.get("sources", {}).get("industry_feeds", [])
+            if isinstance(source, dict)
+            and source.get("name")
+            and source.get("authority") == "official"
+        )
         return names
 
     def _is_ai_relevant(self, item: Dict[str, str]) -> bool:
@@ -1143,9 +1552,26 @@ class DailyBriefing:
             "model_id",
             "published_at",
             "summary_cn",
+            "industry_track",
+            "industry_layer_hint",
+            "country",
+            "source_authority",
+            "discovery_only",
+            "funding_amount",
+            "funding_round",
+            "adoption_metric",
         ):
             if duplicate.get(field) and not merged.get(field):
                 merged[field] = duplicate[field]
+
+        event_types: List[str] = []
+        for candidate in (primary, duplicate):
+            for event_type in candidate.get("event_types", []):
+                if event_type and event_type not in event_types:
+                    event_types.append(event_type)
+        if event_types:
+            merged["event_types"] = event_types
+            merged.setdefault("event_type", event_types[0])
 
         related_links = list(primary.get("related_links", []))
         duplicate_url = clean_text(duplicate.get("url", ""))
@@ -1987,6 +2413,39 @@ class DailyBriefing:
             )
         return rows
 
+    def official_x_search_groups(self, group_size: int = 8) -> List[Dict[str, Any]]:
+        """Build small, country-aware queries for the Codex web-search fallback."""
+        accounts = self.official_x_watchlist()
+        if not accounts:
+            return []
+        group_size = max(1, group_size)
+        countries = sorted(
+            {account.get("country", "") or "OTHER" for account in accounts},
+            key=lambda country: ({"CN": 0, "US": 1}.get(country, 2), country),
+        )
+        groups: List[Dict[str, Any]] = []
+        for country in countries:
+            country_accounts = [
+                account
+                for account in accounts
+                if (account.get("country", "") or "OTHER") == country
+            ]
+            for offset in range(0, len(country_accounts), group_size):
+                chunk = country_accounts[offset : offset + group_size]
+                handles = [account["handle"] for account in chunk]
+                groups.append(
+                    {
+                        "country": country,
+                        "account_count": len(chunk),
+                        "handles": handles,
+                        "query": (
+                            "(" + " OR ".join(f"from:{handle}" for handle in handles) + ")"
+                            " -filter:replies"
+                        ),
+                    }
+                )
+        return groups
+
     def fetch_official_x_updates(self) -> List[Dict[str, Any]]:
         """Fetch first-party X posts when an official X API token is available."""
         token = clean_text(os.environ.get("X_BEARER_TOKEN", ""))
@@ -2073,7 +2532,7 @@ class DailyBriefing:
                         "popularity": popularity,
                         "public_metrics": metrics,
                     }
-                    self._mark_official_model_release(row, "X 官方首发")
+                    self._mark_official_model_release(row, "X 官方模型动态")
                     rows.append(row)
             rows = self._dedupe_items(rows)
             rows.sort(
@@ -2454,13 +2913,18 @@ class DailyBriefing:
                 f"「融资风向」{short_title(venture_news[0]['title'], 24)} 背后的 B 端机会"
             )
 
-        topics.extend(
-            [
-                "「今日 AI/Web3 信息差」把新闻整理成 3 个普通人能用的机会",
-                "「工具测评选题」从 GitHub Trending 挑一个项目做上手体验",
-                "「商业化观察」今天哪些热点能转成商单、咨询或产品 demo",
-            ]
-        )
+        if not (
+            self.lookback_hours is not None
+            or self.focus
+            or self.briefing_mode != "all"
+        ):
+            topics.extend(
+                [
+                    "「今日 AI/Web3 信息差」把新闻整理成 3 个普通人能用的机会",
+                    "「工具测评选题」从 GitHub Trending 挑一个项目做上手体验",
+                    "「商业化观察」今天哪些热点能转成商单、咨询或产品 demo",
+                ]
+            )
         return topics[: self._limit("topics")]
 
     def enrich_items(
@@ -2481,8 +2945,10 @@ class DailyBriefing:
 
     def _enrich_news_item(self, item: Dict[str, str], section: str) -> None:
         item["summary_cn"] = self._summarize_news_cn(item, section)
+        self._assign_event_types(item, section)
         item["category"] = self._classify_news_item(item, section)
         item["tags"] = self._tag_item(item, section)
+        self._assign_industry_layer(item, section)
         item["score"] = self._score_item(item, section)
         self._apply_personalization(item, section)
         self._apply_dimension_scores(item, section)
@@ -2492,8 +2958,10 @@ class DailyBriefing:
 
     def _enrich_project_item(self, project: Dict[str, str]) -> None:
         project["summary_cn"] = self._summarize_project_cn(project)
+        self._assign_event_types(project, "github")
         project["category"] = self._classify_project_item(project)
         project["tags"] = self._tag_item(project, "github")
+        self._assign_industry_layer(project, "github")
         project["score"] = self._score_item(project, "github")
         self._apply_personalization(project, "github")
         self._apply_dimension_scores(project, "github")
@@ -2517,10 +2985,13 @@ class DailyBriefing:
             return "Web3 叙事"
 
         if section == "venture":
-            if has_any_keyword(text, ("ipo", "trading", "public", "上市")):
+            event_types = set(item.get("event_types", []))
+            if "ipo" in event_types:
                 return "资本市场"
-            if has_any_keyword(text, ("fund", "funding", "vc", "venture", "backs", "stake", "融资", "资本")):
+            if event_types & {"funding", "acquisition"}:
                 return "融资并购"
+            if "earnings" in event_types:
+                return "收入与商业化"
             return "商业化"
 
         rules = [
@@ -2553,6 +3024,285 @@ class DailyBriefing:
                 return category
         return "开源生态"
 
+    def _assign_event_types(self, item: Dict[str, Any], section: str) -> None:
+        text = " ".join(
+            [
+                item_title(item),
+                clean_text(item.get("summary", "")),
+                clean_text(item.get("summary_cn", "")),
+                clean_text(item.get("description", "")),
+            ]
+        ).lower()
+        rules = (
+            ("funding", ("funding", "fundraise", "raises", "raised", "series a", "series b", "series c", "seed round", "融资", "获投", "完成新一轮")),
+            ("acquisition", ("acquisition", "acquires", "acquired", "merger", "buys", "收购", "并购", "合并")),
+            ("ipo", ("ipo", "goes public", "public listing", "上市", "招股书")),
+            ("earnings", ("revenue", "arr", "earnings", "profit", "sales growth", "营收", "收入", "利润", "财报")),
+            ("adoption", ("adoption", "adopts", "deploys", "deployment", "customer", "customers", "active users", "downloads", "rollout", "used by", "采用", "部署", "客户", "用户增长", "活跃用户", "下载量", "落地")),
+            ("partnership", ("partnership", "partners with", "collaboration", "integration", "合作", "战略合作", "集成")),
+            ("pricing", ("pricing", "price cut", "price reduction", "subscription", "降价", "定价", "订阅", "涨价")),
+            ("policy", ("regulation", "regulatory", "ai policy", "government policy", "policy proposal", "policy framework", "lawmakers", "legislation", "compliance", "监管", "政策", "法规", "合规", "禁令")),
+            ("safety", ("safety", "security", "risk", "vulnerability", "attack", "安全", "风险", "漏洞", "攻击")),
+            ("research", ("paper", "research", "study", "benchmark", "arxiv", "论文", "研究", "评测")),
+            ("infrastructure", ("chip", "gpu", "semiconductor", "hbm", "data center", "datacenter", "cloud infrastructure", "compute cluster", "capex", "芯片", "算力", "半导体", "数据中心", "云基础设施", "资本开支")),
+        )
+        event_types: List[str] = []
+        if item.get("signal_type") == "model_release":
+            event_types.append("model_release")
+        for event_type, keywords in rules:
+            if has_any_keyword(text, keywords) and event_type not in event_types:
+                event_types.append(event_type)
+        source_lower = clean_text(item.get("source", "")).lower()
+        if source_lower == "arxiv":
+            if "research" not in event_types:
+                event_types.append("research")
+            strong_adoption_markers = (
+                "adoption",
+                "active users",
+                "customers",
+                "used by",
+                "用户增长",
+                "活跃用户",
+                "客户采用",
+            )
+            if "adoption" in event_types and not has_any_keyword(
+                text, strong_adoption_markers
+            ):
+                event_types.remove("adoption")
+        if self._looks_like_product_update(item) and "product_update" not in event_types:
+            event_types.append("product_update")
+        if section == "github" and "open_source" not in event_types:
+            event_types.append("open_source")
+
+        track = clean_text(item.get("industry_track", ""))
+        if not event_types:
+            fallback = {
+                "infrastructure": "infrastructure",
+                "applications": "application",
+                "capital": "commercial",
+            }.get(track, "industry_news")
+            event_types.append(fallback)
+
+        track_priorities = {
+            "infrastructure": ("infrastructure", "adoption", "partnership"),
+            "applications": (
+                "adoption",
+                "product_update",
+                "application",
+                "pricing",
+                "partnership",
+            ),
+            "capital": ("funding", "acquisition", "ipo", "earnings", "commercial"),
+        }
+        preferred = track_priorities.get(track, ())
+        if preferred:
+            order = {event_type: index for index, event_type in enumerate(preferred)}
+            event_types.sort(key=lambda event_type: order.get(event_type, len(order)))
+        if (
+            source_lower.startswith("github release ·")
+            and "product_update" in event_types
+            and item.get("signal_type") != "model_release"
+        ):
+            event_types.remove("product_update")
+            event_types.insert(0, "product_update")
+
+        labels = {
+            "model_release": "模型发布/更新",
+            "product_update": "产品/功能更新",
+            "application": "应用动态",
+            "adoption": "客户采用/增长",
+            "partnership": "合作/集成",
+            "pricing": "定价变化",
+            "funding": "融资",
+            "acquisition": "并购",
+            "ipo": "资本市场",
+            "earnings": "收入/财报",
+            "infrastructure": "基础设施",
+            "research": "研究",
+            "policy": "政策监管",
+            "safety": "安全风险",
+            "open_source": "开源项目",
+            "commercial": "商业化",
+            "industry_news": "行业动态",
+        }
+        item["event_types"] = event_types
+        item["event_type"] = event_types[0]
+        item["event_type_label"] = labels.get(event_types[0], "行业动态")
+        item["event_type_reason"] = "、".join(
+            labels.get(event_type, event_type) for event_type in event_types[:3]
+        )
+
+        amount_match = re.search(
+            r"(?:US\$|RMB|人民币|\$|¥|￥)\s?[\d,.]+\s?(?:billion|million|bn|m|b)?|"
+            r"[\d,.]+\s?(?:亿美元|亿元|万美元|万元)",
+            text,
+            flags=re.IGNORECASE,
+        )
+        finance_events = {"funding", "acquisition", "ipo", "earnings"}
+        if amount_match and (
+            bool(set(event_types) & finance_events) or track == "capital"
+        ):
+            item["funding_amount"] = clean_text(amount_match.group(0))
+        round_match = re.search(
+            r"(?:pre[- ]seed|seed|series\s+[a-z]|angel|strategic)\s*(?:round|financing)?|"
+            r"(?:种子轮|天使轮|pre[- ]?[a-z]轮|[a-z]轮|战略融资)",
+            text,
+            flags=re.IGNORECASE,
+        )
+        if round_match:
+            item["funding_round"] = clean_text(round_match.group(0))
+        adoption_match = re.search(
+            r"[\d,.]+\s?(?:million|billion|m|bn)?\s?(?:active users|users|customers|developers|downloads)|"
+            r"[\d,.]+\s?(?:万|亿)?(?:活跃用户|用户|客户|开发者|下载量)",
+            text,
+            flags=re.IGNORECASE,
+        )
+        if adoption_match:
+            item["adoption_metric"] = clean_text(adoption_match.group(0))
+
+    def _assign_industry_layer(
+        self,
+        item: Dict[str, Any],
+        section: str,
+    ) -> None:
+        text = " ".join(
+            [
+                item_title(item),
+                clean_text(item.get("summary", "")),
+                clean_text(item.get("summary_cn", "")),
+                clean_text(item.get("description", "")),
+                clean_text(item.get("category", "")),
+                " ".join(item.get("tags", [])),
+            ]
+        ).lower()
+        upstream_markers = (
+            "chip",
+            "gpu",
+            "semiconductor",
+            "hbm",
+            "data center",
+            "datacenter",
+            "compute cluster",
+            "cloud infrastructure",
+            "inference hardware",
+            "energy",
+            "芯片",
+            "算力",
+            "半导体",
+            "数据中心",
+            "云基础设施",
+            "能源",
+        )
+        midstream_markers = (
+            "foundation model",
+            "language model",
+            "llm",
+            "model release",
+            "training",
+            "inference",
+            "api",
+            "framework",
+            "model platform",
+            "vector database",
+            "rag",
+            "evaluation",
+            "benchmark",
+            "基础模型",
+            "大模型",
+            "模型发布",
+            "训练",
+            "推理平台",
+            "开发框架",
+            "评测",
+        )
+        downstream_markers = (
+            "app",
+            "product",
+            "workflow",
+            "creator",
+            "enterprise",
+            "consumer",
+            "healthcare",
+            "education",
+            "legal",
+            "search",
+            "browser",
+            "coding agent",
+            "video generation",
+            "image generation",
+            "robot",
+            "应用",
+            "产品",
+            "工作流",
+            "企业服务",
+            "消费级",
+            "医疗",
+            "教育",
+            "法律",
+            "搜索",
+            "浏览器",
+            "内容创作",
+            "机器人",
+        )
+
+        layer_hint = clean_text(item.get("industry_layer_hint", ""))
+        track = clean_text(item.get("industry_track", ""))
+        title_lower = item_title(item).lower()
+        adoption_title_markers = (
+            "customer",
+            "customers",
+            "case study",
+            "deployed",
+            "deploys",
+            "used by",
+            "how ",
+            "客户",
+            "采用",
+            "部署",
+            "落地",
+        )
+        if clean_text(item.get("source", "")).lower() == "arxiv":
+            layer = "midstream"
+            reason = "论文、评测与研究方法属于模型和技术供给层"
+        elif "adoption" in item.get("event_types", []) and has_any_keyword(
+            title_lower, adoption_title_markers
+        ):
+            layer = "downstream"
+            reason = "客户采用、企业部署或真实应用案例"
+        elif track == "applications" and (
+            layer_hint == "downstream" or has_any_keyword(text, downstream_markers)
+        ):
+            layer = "downstream"
+            reason = "面向用户或企业的 AI 应用、工具与行业服务"
+        elif has_any_keyword(text, upstream_markers):
+            layer = "upstream"
+            reason = "芯片、算力、云、数据中心或能源基础设施"
+        elif item.get("signal_type") == "model_release" or has_any_keyword(
+            text, midstream_markers
+        ):
+            layer = "midstream"
+            reason = "模型、训练推理、API、平台或开发基础设施"
+        elif has_any_keyword(text, downstream_markers):
+            layer = "downstream"
+            reason = "面向用户或企业的 AI 应用、工具与行业服务"
+        elif section == "github":
+            layer = "midstream"
+            reason = "开源开发工具与技术生态"
+        elif layer_hint in {"upstream", "midstream", "downstream"}:
+            layer = layer_hint
+            reason = "由该来源的产业轨道提供初始归类，仍可由正文信号修正"
+        else:
+            layer = "downstream"
+            reason = "AI 行业应用、产品或市场动态"
+
+        item["industry_layer"] = layer
+        item["industry_layer_reason"] = reason
+        item["industry_layer_label"] = {
+            "upstream": "上游基础设施",
+            "midstream": "中游模型与平台",
+            "downstream": "下游应用与服务",
+        }[layer]
+
     def _tag_item(self, item: Dict[str, str], section: str) -> List[str]:
         text = f"{item_title(item)} {item.get('summary', '')} {item.get('description', '')}".lower()
         rules = [
@@ -2584,12 +3334,25 @@ class DailyBriefing:
             for label, keywords in rules
             if has_any_keyword(text, keywords) and label not in tags
         )
+        event_tags = {
+            "product_update": "产品更新",
+            "adoption": "采用/增长",
+            "partnership": "合作/集成",
+            "pricing": "定价",
+            "funding": "融资/IPO",
+            "acquisition": "融资/IPO",
+            "ipo": "融资/IPO",
+            "earnings": "商业化",
+            "infrastructure": "端侧/硬件",
+        }
+        for event_type in item.get("event_types", []):
+            label = event_tags.get(event_type)
+            if label and label not in tags:
+                tags.append(label)
         if section == "web3" and "Web3" not in tags:
             tags.insert(0, "Web3")
         if section == "github" and "开源生态" not in tags:
             tags.insert(0, "开源生态")
-        if section == "venture" and "融资/IPO" not in tags:
-            tags.insert(0, "融资/IPO")
         if not tags:
             tags.append("AI")
         return tags[:4]
@@ -2714,7 +3477,10 @@ class DailyBriefing:
             related_source = clean_text(related.get("source", ""))
             if related_source:
                 source_names.add(related_source)
-        source_count = max(1, len(source_names))
+        source_families = {
+            self._source_family_name(name) for name in source_names if clean_text(name)
+        }
+        source_count = max(1, len(source_families))
         official_names = self._official_ai_source_names() | {
             clean_text(row.get("name", ""))
             for row in self.config.get("sources", {}).get("official_sitemaps", [])
@@ -2726,6 +3492,7 @@ class DailyBriefing:
             name and name in source_names for name in official_names
         )
 
+        authority = clean_text(item.get("source_authority", "")).lower()
         if is_official:
             tier = "官方源"
             verification = "官方确认"
@@ -2738,8 +3505,10 @@ class DailyBriefing:
             tier = "单一来源"
             verification = "单源信号"
             lowered = source.lower()
-            if "hacker news" in lowered:
+            if authority == "community" or "hacker news" in lowered:
                 credibility = 62
+            elif authority == "media":
+                credibility = 78
             elif "ai hot" in lowered:
                 credibility = 66
             elif "hugging face trending" in lowered:
@@ -2753,7 +3522,30 @@ class DailyBriefing:
             "source_tier": tier,
             "verification": verification,
             "credibility_score": credibility,
+            "evidence_status": (
+                "已确认" if verification in {"官方确认", "多源印证"} else "待核验"
+            ),
         }
+
+    @staticmethod
+    def _source_family_name(source: str) -> str:
+        normalized = clean_text(source).lower()
+        families = (
+            ("techcrunch", "techcrunch"),
+            ("crunchbase", "crunchbase"),
+            ("coindesk", "coindesk"),
+            ("hacker news", "hacker news"),
+            ("hugging face", "hugging face"),
+            ("google deepmind", "google deepmind"),
+            ("google cloud", "google cloud"),
+            ("nvidia", "nvidia"),
+            ("amazon web services", "aws"),
+            ("aws ", "aws"),
+        )
+        for marker, family in families:
+            if marker in normalized:
+                return family
+        return normalized
 
     def _timeliness_score(self, item: Dict[str, Any]) -> int:
         published_at = self._parse_feed_datetime(
@@ -2934,6 +3726,9 @@ class DailyBriefing:
             "section_key": item.get("section", ""),
             "tags": item.get("tags", []),
             "summary": item.get("summary_cn", ""),
+            "raw_summary": clean_text(
+                item.get("summary", "") or item.get("description", "")
+            ),
             "score": item.get("score", 0),
             "overall_score": item.get("overall_score", item.get("rion_score", 0)),
             "rion_score": item.get("rion_score", item.get("score", 0)),
@@ -2945,6 +3740,7 @@ class DailyBriefing:
             "source_count": item.get("source_count", 1),
             "source_tier": item.get("source_tier", "单一来源"),
             "verification": item.get("verification", "单源信号"),
+            "evidence_status": item.get("evidence_status", "待核验"),
             "rion_reason": item.get("rion_reason", ""),
             "content_value": item.get("content_value", ""),
             "matched_signals": item.get("matched_signals", []),
@@ -2967,6 +3763,21 @@ class DailyBriefing:
             "x_handle": item.get("x_handle", ""),
             "country": item.get("country", ""),
             "public_metrics": item.get("public_metrics", {}),
+            "popularity": item.get("popularity", item.get("score", 0)),
+            "related_links": item.get("related_links", []),
+            "industry_track": item.get("industry_track", ""),
+            "industry_layer": item.get("industry_layer", ""),
+            "industry_layer_label": item.get("industry_layer_label", ""),
+            "industry_layer_reason": item.get("industry_layer_reason", ""),
+            "event_type": item.get("event_type", "industry_news"),
+            "event_types": item.get("event_types", []),
+            "event_type_label": item.get("event_type_label", "行业动态"),
+            "event_type_reason": item.get("event_type_reason", ""),
+            "source_authority": item.get("source_authority", ""),
+            "discovery_only": bool(item.get("discovery_only", False)),
+            "funding_amount": item.get("funding_amount", ""),
+            "funding_round": item.get("funding_round", ""),
+            "adoption_metric": item.get("adoption_metric", ""),
         }
 
     def generate_highlights(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -3096,6 +3907,298 @@ class DailyBriefing:
             reverse=True,
         )
         return [self._briefing_entry(item) for item in releases[:limit]]
+
+    def _looks_like_product_update(self, item: Dict[str, Any]) -> bool:
+        if item.get("signal_type") == "model_release":
+            return False
+        if "product_update" in item.get("event_types", []):
+            return True
+        text = " ".join(
+            [
+                item_title(item),
+                clean_text(item.get("summary", "")),
+                clean_text(item.get("summary_cn", "")),
+                clean_text(item.get("category", "")),
+                clean_text(item.get("source", "")),
+            ]
+        ).lower()
+        update_markers = (
+            "launch",
+            "release",
+            "update",
+            "upgrade",
+            "now available",
+            "new feature",
+            "changelog",
+            "发布",
+            "上线",
+            "更新",
+            "升级",
+            "新增",
+            "开放",
+        )
+        product_markers = (
+            "product",
+            "feature",
+            "app",
+            "api",
+            "platform",
+            "agent",
+            "coding",
+            "codex",
+            "claude code",
+            "cursor",
+            "copilot",
+            "tool",
+            "workflow",
+            "video",
+            "image",
+            "产品",
+            "功能",
+            "工具",
+            "工作流",
+            "智能体",
+            "视频",
+            "图像",
+        )
+        return has_any_keyword(text, update_markers) and has_any_keyword(
+            text, product_markers
+        )
+
+    def generate_product_updates(
+        self,
+        items: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        limit = self._limit("product_updates")
+        if limit <= 0:
+            return []
+        updates = [
+            item
+            for item in items
+            if item.get("section") != "web3"
+            and self._looks_like_product_update(item)
+        ]
+        updates = self._ranked_items(updates)
+        return [self._briefing_entry(item) for item in updates[:limit]]
+
+    def generate_viral_ai_news(
+        self,
+        items: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        limit = self._limit("viral_ai_news")
+        if limit <= 0:
+            return []
+        candidates = [
+            item
+            for item in items
+            if item.get("section") in {"ai", "github", "venture"}
+            and item.get("signal_type") != "model_release"
+        ]
+        candidates.sort(
+            key=lambda item: (
+                int(item.get("overall_score", 0)),
+                int(item.get("content_score", 0)),
+                int(item.get("timeliness_score", 0)),
+                int(item.get("popularity", item.get("score", 0)) or 0),
+            ),
+            reverse=True,
+        )
+        return [self._briefing_entry(item) for item in candidates[:limit]]
+
+    def generate_industry_chain(
+        self,
+        items: List[Dict[str, Any]],
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        limit = self._limit("industry_chain_per_layer")
+        layers = {
+            "upstream": [],
+            "midstream": [],
+            "downstream": [],
+        }
+        if limit <= 0:
+            return layers
+        for layer in layers:
+            candidates = [
+                item
+                for item in items
+                if item.get("industry_layer") == layer
+                and item.get("section") != "web3"
+                and self._is_ai_relevant(item)
+            ]
+            layers[layer] = [
+                self._briefing_entry(item)
+                for item in self._ranked_items(candidates)[:limit]
+            ]
+        return layers
+
+    def generate_application_trends(
+        self,
+        items: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        limit = self._limit("application_trends")
+        candidates = [
+            item
+            for item in items
+            if item.get("industry_layer") == "downstream"
+            and item.get("section") != "web3"
+            and self._is_ai_relevant(item)
+            and (
+                item.get("industry_track") == "applications"
+                or bool(
+                    set(item.get("event_types", []))
+                    & {"application", "product_update", "adoption", "partnership", "pricing"}
+                )
+            )
+        ]
+        return [
+            self._briefing_entry(item)
+            for item in self._ranked_items(candidates)[:limit]
+        ]
+
+    def _looks_like_ai_funding(self, item: Dict[str, Any]) -> bool:
+        if set(item.get("event_types", [])) & {
+            "funding",
+            "acquisition",
+            "ipo",
+            "earnings",
+        }:
+            return self._is_ai_relevant(item)
+        text = " ".join(
+            [
+                item_title(item),
+                clean_text(item.get("summary", "")),
+                clean_text(item.get("summary_cn", "")),
+                clean_text(item.get("category", "")),
+                " ".join(item.get("tags", [])),
+            ]
+        ).lower()
+        finance_markers = (
+            "funding",
+            "fundraise",
+            "series a",
+            "series b",
+            "series c",
+            "venture",
+            "acquisition",
+            "acquires",
+            "merger",
+            "ipo",
+            "valuation",
+            "revenue",
+            "融资",
+            "并购",
+            "收购",
+            "上市",
+            "估值",
+            "营收",
+        )
+        return has_any_keyword(text, finance_markers) and self._is_ai_relevant(item)
+
+    def generate_ai_funding(
+        self,
+        items: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        limit = self._limit("ai_funding")
+        candidates = [item for item in items if self._looks_like_ai_funding(item)]
+        candidates.sort(
+            key=lambda item: (
+                int(item.get("business_score", 0)),
+                int(item.get("overall_score", 0)),
+                int(item.get("timeliness_score", 0)),
+                int(item.get("credibility_score", 0)),
+            ),
+            reverse=True,
+        )
+        entries: List[Dict[str, Any]] = []
+        min_sources = int(
+            self.config.get("quality", {}).get("funding_min_source_count", 2)
+        )
+        for item in candidates[:limit]:
+            entry = self._briefing_entry(item)
+            confirmed = bool(item.get("official")) or int(
+                item.get("source_count", 1)
+            ) >= min_sources
+            entry["funding_verification"] = "已核验" if confirmed else "待官方复核"
+            entry["requires_primary_confirmation"] = not confirmed
+            entries.append(entry)
+        return entries
+
+    def generate_cross_layer_connections(
+        self,
+        items: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        limit = self._limit("cross_layer_connections")
+        if limit <= 0:
+            return []
+        topic_rules = (
+            ("Agent / AI 编码", ("agent", "agentic", "codex", "claude code", "cursor", "copilot", "智能体", "编程")),
+            ("视频/多模态", ("video", "image", "multimodal", "vision", "视频", "图像", "多模态")),
+            ("推理与算力", ("inference", "gpu", "chip", "compute", "datacenter", "data center", "推理", "算力", "芯片", "数据中心")),
+            ("企业工作流", ("enterprise", "workflow", "customer", "deployment", "saas", "企业", "工作流", "客户", "部署")),
+            ("内容创作", ("creator", "content", "social", "marketing", "创作者", "内容", "营销")),
+            ("搜索与知识", ("search", "retrieval", "rag", "browser", "搜索", "检索", "浏览器")),
+        )
+
+        def topics(item: Dict[str, Any]) -> set[str]:
+            text = " ".join(
+                [
+                    item_title(item),
+                    clean_text(item.get("summary", "")),
+                    clean_text(item.get("summary_cn", "")),
+                    " ".join(item.get("tags", [])),
+                ]
+            ).lower()
+            return {
+                label for label, keywords in topic_rules if has_any_keyword(text, keywords)
+            }
+
+        by_layer = {
+            layer: self._ranked_items(
+                [
+                    item
+                    for item in items
+                    if item.get("industry_layer") == layer
+                    and item.get("section") != "web3"
+                ]
+            )[:8]
+            for layer in ("upstream", "midstream", "downstream")
+        }
+        connections: List[Dict[str, Any]] = []
+        seen = set()
+        for left_layer, right_layer in (
+            ("upstream", "midstream"),
+            ("midstream", "downstream"),
+            ("upstream", "downstream"),
+        ):
+            for left in by_layer[left_layer]:
+                left_topics = topics(left)
+                if not left_topics:
+                    continue
+                for right in by_layer[right_layer]:
+                    shared = sorted(left_topics & topics(right))
+                    if not shared:
+                        continue
+                    key = (left.get("item_key"), right.get("item_key"))
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    label = " / ".join(shared[:2])
+                    connections.append(
+                        {
+                            "from": self._briefing_entry(left),
+                            "to": self._briefing_entry(right),
+                            "shared_signals": shared[:3],
+                            "connection": (
+                                f"两条独立信号共同指向「{label}」：前者位于"
+                                f"{left.get('industry_layer_label', left_layer)}，后者位于"
+                                f"{right.get('industry_layer_label', right_layer)}。"
+                            ),
+                            "caveat": "这是产业主题关联，不代表两家公司存在直接合作或因果关系。",
+                        }
+                    )
+                    if len(connections) >= limit:
+                        return connections
+        return connections
 
     def generate_official_social_updates(
         self,
@@ -3611,14 +4714,33 @@ class DailyBriefing:
         run_date = now.strftime("%Y-%m-%d")
         base_ai_news = self.fetch_ai_news()
         ecosystem_signals = self.fetch_ecosystem_signals()
+        industry_signals = self.fetch_industry_signals()
+        industry_ai_signals = [
+            item
+            for item in industry_signals
+            if item.get("industry_track") != "capital"
+        ]
+        industry_capital_signals = [
+            item
+            for item in industry_signals
+            if item.get("industry_track") == "capital"
+        ]
         ai_news = self._dedupe_items(
             self._round_robin(
-                [base_ai_news, ecosystem_signals],
-                len(base_ai_news) + len(ecosystem_signals),
+                [base_ai_news, ecosystem_signals, industry_ai_signals],
+                len(base_ai_news)
+                + len(ecosystem_signals)
+                + len(industry_ai_signals),
             )
         )
         web3_news = self.fetch_web3_news()
-        venture_news = self.fetch_venture_news()
+        base_venture_news = self.fetch_venture_news()
+        venture_news = self._dedupe_items(
+            self._round_robin(
+                [base_venture_news, industry_capital_signals],
+                len(base_venture_news) + len(industry_capital_signals),
+            )
+        )
         news_sections = self._dedupe_news_sections(
             ai_news,
             web3_news,
@@ -3665,6 +4787,36 @@ class DailyBriefing:
                     }
                 )
 
+        unfiltered_candidate_count = len(ranked_candidates)
+        request_filter_active = bool(
+            self.lookback_hours is not None
+            or self.focus
+            or self.briefing_mode != "all"
+        )
+        if request_filter_active:
+            ranked_candidates = [
+                item for item in ranked_candidates if self._matches_request(item)
+            ]
+
+            def filter_rows(
+                rows: List[Dict[str, Any]], section: str, section_name: str
+            ) -> List[Dict[str, Any]]:
+                filtered: List[Dict[str, Any]] = []
+                for row in rows:
+                    probe = dict(row)
+                    probe["section"] = section
+                    probe["section_name"] = section_name
+                    if self._matches_request(probe):
+                        filtered.append(row)
+                return filtered
+
+            ai_news = filter_rows(ai_news, "ai", "AI 热点")
+            web3_news = filter_rows(web3_news, "web3", "Web3 热点")
+            venture_news = filter_rows(venture_news, "venture", "投资 & 经济")
+            github_projects = filter_rows(
+                github_projects, "github", "GitHub 优质项目"
+            )
+
         ai_news = self._select_ai_candidates(ai_news, self._limit("ai_news"))
         all_items = self.all_content_items(ai_news, web3_news, venture_news, github_projects)
         history_by_key = {
@@ -3694,6 +4846,20 @@ class DailyBriefing:
         business_opportunities = self.generate_business_opportunities(ranked_items)
         watchlist = self.generate_watchlist(ranked_items)
         model_releases = self.generate_model_releases(ranked_candidates)
+        product_updates = self.generate_product_updates(ranked_candidates)
+        viral_ai_news = self.generate_viral_ai_news(ranked_candidates)
+        industry_chain = self.generate_industry_chain(ranked_candidates)
+        application_trends = self.generate_application_trends(ranked_candidates)
+        ai_funding = self.generate_ai_funding(ranked_candidates)
+        cross_layer_connections = self.generate_cross_layer_connections(
+            ranked_candidates
+        )
+        industry_feed_signals = [
+            self._briefing_entry(item)
+            for item in self._ranked_items(
+                [item for item in ranked_candidates if item.get("industry_track")]
+            )
+        ]
         official_social_updates = self.generate_official_social_updates(
             ranked_candidates
         )
@@ -3729,6 +4895,12 @@ class DailyBriefing:
                 "history_enabled": self.history_store is not None,
                 "editorial_mode": "codex-ready",
                 "candidate_count": len(ranked_candidates),
+                "unfiltered_candidate_count": unfiltered_candidate_count,
+                "request": {
+                    "mode": self.briefing_mode,
+                    "focus": self.focus,
+                    "lookback_hours": self.lookback_hours,
+                },
                 "official_x_monitor": {
                     "mode": (
                         "x_api"
@@ -3736,19 +4908,38 @@ class DailyBriefing:
                         else "codex_web_search"
                     ),
                     "account_count": len(self.official_x_watchlist()),
+                    "search_group_count": len(self.official_x_search_groups()),
                     "lookback_hours": int(
                         self.config.get("quality", {}).get(
                             "official_x_lookback_hours", 48
                         )
+                    ) if self.lookback_hours is None else self.lookback_hours,
+                },
+                "industry_monitor": {
+                    "automatic_feed_count": len(
+                        self.config.get("sources", {}).get("industry_feeds", [])
                     ),
+                    "watchlist_count": len(self.industry_source_watchlist()),
+                    "search_group_count": len(self.industry_search_groups()),
+                    "capital_is_cross_cutting": True,
                 },
                 "editorial_instructions": [
                     "只保留能核验的事实和原始链接，不补写来源中没有的数字。",
                     "优先选择新变化、多源印证、官方更新和可转成内容或商业动作的信号。",
                     "模型发布必须优先引用厂商官网、官方 Changelog、官方模型卡或官方 Release，不用媒体转述替代发布确认。",
                     "先检查 sections.model_releases，再处理一般热点；说明模型类型、发布时间、可用渠道和仍需验证的限制。",
+                    "并行检查 sections.product_updates 和 sections.viral_ai_news；简报必须同时覆盖模型、产品/功能更新和可能爆火的 AI 新闻，不能只做模型发布榜。",
+                    "爆火候选可包括重大公司公告、开源项目、研究突破、融资并购、价格或 API 变化、行业争议与高热社区讨论，但必须保留可信度标签。",
+                    "用 sections.industry_chain 串联上游算力与基础设施、中游模型与平台、下游应用与服务；资本是跨层事件类型，不得把融资公司从原产业层移走。",
+                    "检查 sections.cross_layer_connections，只把它当作主题关联线索；没有直接证据时不得写成两家公司存在合作或因果关系。",
+                    "应用层优先寻找产品发布之外的采用、客户、用户增长、定价和收入证据；融资金额、轮次、并购和营收必须按 funding_verification 复核。",
+                    "执行 sections.industry_search_groups 的相关批次，并用 sections.industry_source_watchlist 回到公司、投资方、客户或监管披露核验关键数字。",
+                    "严格遵守 metadata.request：mode=models 时同时包含模型首发、版本升级、能力更新、API 可用性和模型价格变化；focus 有值时只保留该赛道或行业；lookback_hours 有值时保留该时间段内的热点，并说明边界口径。",
                     "检查 sections.official_social_updates；若为空，按 sections.official_x_watchlist 搜索请求时间窗内的官方 X 帖子，并保留 x.com 原帖链接。",
-                    "中文解释要具体，X 草稿按单帖、thread、视觉或视频脚本区分。",
+                    "执行 sections.official_x_search_groups 的全部批次；CN 批次优先，未完成时不得把账号已配置写成已经检索。",
+                    "每一条保留到最终简报的新闻、模型、产品、融资、官方 X 动态或开源项目，都必须在可点击标题下一行写 1 至 2 句简短中文概括。概括必须包含主体、具体动作或变化，以及最关键的结果、数字或影响；只写来源明确支持的事实。",
+                    "不得用‘值得关注’‘可作为行业观察’‘核心看点是工具链还不成熟’等通用判断代替新闻概括，也不得只留下标题、链接、标签或评分。写完后逐条检查所有可点击条目是否都有不重复的具体中文概括。",
+                    "不要在概括前添加‘中文总结’‘摘要’或‘一句话介绍’标签。X 草稿按单帖、thread、视觉或视频脚本区分。",
                 ],
             },
             "sections": {
@@ -3758,8 +4949,18 @@ class DailyBriefing:
                 "business_opportunities": business_opportunities,
                 "watchlist": watchlist,
                 "model_releases": model_releases,
+                "product_updates": product_updates,
+                "viral_ai_news": viral_ai_news,
+                "industry_chain": industry_chain,
+                "cross_layer_connections": cross_layer_connections,
+                "application_trends": application_trends,
+                "ai_funding": ai_funding,
+                "industry_feed_signals": industry_feed_signals,
+                "industry_search_groups": self.industry_search_groups(),
+                "industry_source_watchlist": self.industry_source_watchlist(),
                 "official_social_updates": official_social_updates,
                 "official_x_watchlist": self.official_x_watchlist(),
+                "official_x_search_groups": self.official_x_search_groups(),
                 "official_model_watchlist": self.official_model_page_watchlist(),
                 "official_product_watchlist": self.official_product_page_watchlist(),
                 "x_topics": x_topics,
@@ -3944,9 +5145,44 @@ class DailyBriefing:
             f"==== Rion 每日早报 · {meta['date']} {meta['weekday']} ====",
             "",
         ]
+        request = meta.get("request", {})
+        if any(request.get(key) not in {None, "", "all"} for key in ("mode", "focus", "lookback_hours")):
+            lines.extend(
+                [
+                    "筛选条件："
+                    f"模式={request.get('mode', 'all')} · "
+                    f"方向={request.get('focus') or '全部'} · "
+                    f"时间={str(request.get('lookback_hours')) + '小时' if request.get('lookback_hours') else '默认'}",
+                    "",
+                ]
+            )
 
         self._append_text_highlights(lines, sections.get("changes", []), "相比昨天的新变化")
-        self._append_text_model_releases(lines, sections.get("model_releases", []))
+        mode = request.get("mode", "all")
+        if mode in {"all", "industry"}:
+            self._append_text_industry_chain(
+                lines, sections.get("industry_chain", {})
+            )
+            self._append_text_cross_layer_connections(
+                lines, sections.get("cross_layer_connections", [])
+            )
+        if mode in {"all", "models"}:
+            self._append_text_model_releases(lines, sections.get("model_releases", []))
+        if mode in {"all", "products", "applications", "industry"}:
+            self._append_text_highlights(
+                lines, sections.get("product_updates", []), "产品与工具更新"
+            )
+            self._append_text_highlights(
+                lines, sections.get("application_trends", []), "应用层趋势"
+            )
+        if mode in {"all", "hotspots"}:
+            self._append_text_highlights(
+                lines, sections.get("viral_ai_news", []), "可能爆火的 AI 新闻"
+            )
+        if mode in {"all", "hotspots", "funding", "industry"}:
+            self._append_text_highlights(
+                lines, sections.get("ai_funding", []), "AI 投融资与商业化"
+            )
         self._append_text_official_social(
             lines, sections.get("official_social_updates", [])
         )
@@ -3988,16 +5224,60 @@ class DailyBriefing:
         meta = data["metadata"]
         sections = data["sections"]
         lines = [f"# Rion 每日早报 · {meta['date']} {meta['weekday']}", ""]
+        request = meta.get("request", {})
+        if any(request.get(key) not in {None, "", "all"} for key in ("mode", "focus", "lookback_hours")):
+            parts = []
+            if request.get("mode") and request["mode"] != "all":
+                parts.append(f"模式：`{request['mode']}`")
+            if request.get("focus"):
+                parts.append(f"方向：`{request['focus']}`")
+            if request.get("lookback_hours"):
+                parts.append(f"时间：过去 `{request['lookback_hours']}` 小时")
+            lines.extend([f"> {' · '.join(parts)}", ""])
 
         self._append_markdown_highlights(
             lines,
             sections.get("changes", []),
             "相比昨天的新变化",
         )
-        self._append_markdown_model_releases(
-            lines,
-            sections.get("model_releases", []),
-        )
+        mode = request.get("mode", "all")
+        if mode in {"all", "industry"}:
+            self._append_markdown_industry_chain(
+                lines,
+                sections.get("industry_chain", {}),
+            )
+            self._append_markdown_cross_layer_connections(
+                lines,
+                sections.get("cross_layer_connections", []),
+            )
+        if mode in {"all", "models"}:
+            self._append_markdown_model_releases(
+                lines,
+                sections.get("model_releases", []),
+            )
+        if mode in {"all", "products", "applications", "industry"}:
+            self._append_markdown_highlights(
+                lines,
+                sections.get("product_updates", []),
+                "产品与工具更新",
+            )
+            self._append_markdown_highlights(
+                lines,
+                sections.get("application_trends", []),
+                "应用层趋势",
+            )
+        if mode in {"all", "hotspots"}:
+            self._append_markdown_highlights(
+                lines,
+                sections.get("viral_ai_news", []),
+                "可能爆火的 AI 新闻",
+            )
+        if mode in {"all", "hotspots", "funding", "industry"}:
+            self._append_markdown_highlights(
+                lines,
+                sections.get("ai_funding", []),
+                "AI 投融资与商业化",
+            )
         self._append_markdown_official_social(
             lines,
             sections.get("official_social_updates", []),
@@ -4036,6 +5316,8 @@ class DailyBriefing:
                     f"{index}. [{project['name']}]({project.get('url', '')})"
                     f" - {project.get('language', 'Unknown')} | {project.get('stars', '0')} stars{today}"
                 )
+                if project.get("summary_cn"):
+                    lines.append(f"   {project['summary_cn']}")
                 meta_parts = []
                 if project.get("category"):
                     meta_parts.append(project["category"])
@@ -4050,8 +5332,6 @@ class DailyBriefing:
                     lines.append(f"   {project['rion_reason']}")
                 if project.get("description"):
                     lines.append(f"   {project['description']}")
-                if project.get("summary_cn"):
-                    lines.append(f"   {project['summary_cn']}")
         else:
             lines.append("- 暂未抓到 GitHub Trending 内容。")
 
@@ -4077,15 +5357,132 @@ class DailyBriefing:
         )
         return "\n".join(lines)
 
+    def _append_markdown_industry_chain(
+        self,
+        lines: List[str],
+        industry_chain: Dict[str, List[Dict[str, Any]]],
+    ) -> None:
+        labels = (
+            ("upstream", "上游｜算力、芯片与基础设施"),
+            ("midstream", "中游｜模型、平台与开发生态"),
+            ("downstream", "下游｜应用、工具与行业落地"),
+        )
+        lines.extend(["## AI 产业链全景", ""])
+        if not any(industry_chain.get(key) for key, _ in labels):
+            lines.extend(["- 本轮没有足够信号形成产业链全景。", ""])
+            return
+        for key, label in labels:
+            lines.extend([f"### {label}", ""])
+            items = industry_chain.get(key, [])
+            if not items:
+                lines.extend(["- 本轮暂无高置信度更新。", ""])
+                continue
+            for item in items:
+                title = item.get("title", "")
+                url = item.get("url", "")
+                title_text = f"[{title}]({url})" if url else title
+                lines.append(f"- {title_text}")
+                if item.get("summary"):
+                    lines.append(f"  {item['summary']}")
+                meta = " · ".join(
+                    part
+                    for part in (
+                        item.get("event_type_label", ""),
+                        item.get("verification", ""),
+                    )
+                    if part
+                )
+                if meta:
+                    lines.append(f"  {meta}")
+            lines.append("")
+
+    def _append_text_industry_chain(
+        self,
+        lines: List[str],
+        industry_chain: Dict[str, List[Dict[str, Any]]],
+    ) -> None:
+        labels = (
+            ("upstream", "上游｜算力、芯片与基础设施"),
+            ("midstream", "中游｜模型、平台与开发生态"),
+            ("downstream", "下游｜应用、工具与行业落地"),
+        )
+        lines.extend(["━━━━━━━━━━━━━━━━━━", "AI 产业链全景", "━━━━━━━━━━━━━━━━━━", ""])
+        for key, label in labels:
+            lines.append(label)
+            items = industry_chain.get(key, [])
+            if not items:
+                lines.append("- 本轮暂无高置信度更新。")
+            for item in items:
+                lines.append(f"- {item.get('title', '')}")
+                meta = " · ".join(
+                    part
+                    for part in (
+                        item.get("event_type_label", ""),
+                        item.get("verification", ""),
+                    )
+                    if part
+                )
+                if meta:
+                    lines.append(f"  {meta}")
+                if item.get("summary"):
+                    lines.append(f"  {item['summary']}")
+                if item.get("url"):
+                    lines.append(f"  {item['url']}")
+            lines.append("")
+
+    def _append_markdown_cross_layer_connections(
+        self,
+        lines: List[str],
+        connections: List[Dict[str, Any]],
+    ) -> None:
+        lines.extend(["## 产业链联动", ""])
+        if not connections:
+            lines.extend(["- 本轮没有足够证据形成跨层关联。", ""])
+            return
+        for index, connection in enumerate(connections, 1):
+            left = connection.get("from", {})
+            right = connection.get("to", {})
+            left_title = left.get("title", "")
+            right_title = right.get("title", "")
+            left_text = (
+                f"[{left_title}]({left.get('url', '')})" if left.get("url") else left_title
+            )
+            right_text = (
+                f"[{right_title}]({right.get('url', '')})" if right.get("url") else right_title
+            )
+            lines.append(f"{index}. {left_text} → {right_text}")
+            lines.append(f"   {connection.get('connection', '')}")
+            lines.append(f"   {connection.get('caveat', '')}")
+        lines.append("")
+
+    def _append_text_cross_layer_connections(
+        self,
+        lines: List[str],
+        connections: List[Dict[str, Any]],
+    ) -> None:
+        lines.extend(["━━━━━━━━━━━━━━━━━━", "产业链联动", "━━━━━━━━━━━━━━━━━━", ""])
+        if not connections:
+            lines.extend(["- 本轮没有足够证据形成跨层关联。", ""])
+            return
+        for index, connection in enumerate(connections, 1):
+            left = connection.get("from", {})
+            right = connection.get("to", {})
+            lines.append(
+                f"{index}. {left.get('title', '')} → {right.get('title', '')}"
+            )
+            lines.append(connection.get("connection", ""))
+            lines.append(connection.get("caveat", ""))
+            lines.append("")
+
     def _append_markdown_model_releases(
         self,
         lines: List[str],
         releases: List[Dict[str, Any]],
     ) -> None:
-        lines.extend(["## 最新模型发布", ""])
+        lines.extend(["## 最新模型发布与更新", ""])
         if not releases:
             lines.extend(
-                ["- 本轮没有在官方来源中发现新的模型发布。", ""]
+                ["- 本轮没有在官方来源中发现新的模型发布或更新。", ""]
             )
             return
 
@@ -4100,9 +5497,9 @@ class DailyBriefing:
                 "官方确认",
             ]
             lines.append(f"{index}. {title_text}")
-            lines.append(f"   {' · '.join(part for part in meta if part)}")
             if item.get("summary"):
                 lines.append(f"   {item['summary']}")
+            lines.append(f"   {' · '.join(part for part in meta if part)}")
             official_source = item.get("official_source_url", "")
             if official_source and official_source != url:
                 lines.append(f"   [厂商官方入口]({official_source})")
@@ -4116,13 +5513,13 @@ class DailyBriefing:
         lines.extend(
             [
                 "━━━━━━━━━━━━━━━━━━",
-                f"最新模型发布（{len(releases)}条）",
+                f"最新模型发布与更新（{len(releases)}条）",
                 "━━━━━━━━━━━━━━━━━━",
                 "",
             ]
         )
         if not releases:
-            lines.extend(["本轮没有在官方来源中发现新的模型发布。", ""])
+            lines.extend(["本轮没有在官方来源中发现新的模型发布或更新。", ""])
             return
         for index, item in enumerate(releases, 1):
             lines.append(f"{index}. {item.get('title', '')}")
@@ -4222,6 +5619,8 @@ class DailyBriefing:
             if score_meta:
                 meta = f"{meta} · {score_meta}" if meta else score_meta
             lines.append(f"{index}. {title_text}")
+            if item.get("summary"):
+                lines.append(f"   {item['summary']}")
             if meta:
                 lines.append(f"   {meta}")
             if item.get("history_status"):
@@ -4229,12 +5628,34 @@ class DailyBriefing:
                 if int(item.get("score_delta", 0)):
                     history += f" · 综合分变化 {int(item['score_delta']):+d}"
                 lines.append(f"   {history} · {item.get('verification', '单源信号')}")
+            signal_meta = " · ".join(
+                part
+                for part in (
+                    item.get("industry_layer_label", ""),
+                    item.get("event_type_label", ""),
+                    item.get("funding_verification", ""),
+                )
+                if part
+            )
+            if signal_meta:
+                lines.append(f"   {signal_meta}")
+            commercial_details = " · ".join(
+                part
+                for part in (
+                    item.get("funding_amount", ""),
+                    item.get("funding_round", ""),
+                    item.get("adoption_metric", ""),
+                )
+                if part
+            )
+            if commercial_details:
+                lines.append(f"   {commercial_details}")
+            if item.get("requires_primary_confirmation"):
+                lines.append("   关键融资或商业数字仍需公司、投资方或监管披露确认。")
             if item.get("rion_reason"):
                 lines.append(f"   {item['rion_reason']}")
             if item.get("feedback_reason"):
                 lines.append(f"   {item['feedback_reason']}")
-            if item.get("summary"):
-                lines.append(f"   {item['summary']}")
         lines.append("")
 
     def _append_markdown_x_topics(
@@ -4314,6 +5735,30 @@ class DailyBriefing:
                 lines.append(
                     f"{item['history_status']} · {item.get('verification', '单源信号')}"
                 )
+            signal_meta = " · ".join(
+                part
+                for part in (
+                    item.get("industry_layer_label", ""),
+                    item.get("event_type_label", ""),
+                    item.get("funding_verification", ""),
+                )
+                if part
+            )
+            if signal_meta:
+                lines.append(signal_meta)
+            commercial_details = " · ".join(
+                part
+                for part in (
+                    item.get("funding_amount", ""),
+                    item.get("funding_round", ""),
+                    item.get("adoption_metric", ""),
+                )
+                if part
+            )
+            if commercial_details:
+                lines.append(commercial_details)
+            if item.get("requires_primary_confirmation"):
+                lines.append("关键融资或商业数字仍需公司、投资方或监管披露确认。")
             if item.get("rion_reason"):
                 lines.append(item["rion_reason"])
             if item.get("feedback_reason"):
@@ -4465,6 +5910,8 @@ class DailyBriefing:
                 lines.append(f"{index}. [{item['title']}]({item['url']})")
             else:
                 lines.append(f"{index}. {item['title']}")
+            if item.get("summary_cn"):
+                lines.append(f"   {item['summary_cn']}")
             source_line = f"   来源：{item.get('source', 'N/A')} | {item.get('time', 'N/A')}"
             if item.get("sentiment"):
                 source_line += f" | {item['sentiment']}"
@@ -4488,8 +5935,6 @@ class DailyBriefing:
                 lines.append(f"   {' · '.join(meta_parts)}")
             if item.get("rion_reason"):
                 lines.append(f"   {item['rion_reason']}")
-            if item.get("summary_cn"):
-                lines.append(f"   {item['summary_cn']}")
         lines.append("")
 
 
@@ -4537,6 +5982,30 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         help="输出供当前 Codex 模型二次精编的 JSON 候选包",
     )
     parser.add_argument(
+        "--mode",
+        choices=[
+            "all",
+            "models",
+            "products",
+            "applications",
+            "funding",
+            "industry",
+            "hotspots",
+        ],
+        default="all",
+        help="简报模式：完整、模型、产品、应用、投融资、产业全景或热点",
+    )
+    parser.add_argument(
+        "--focus",
+        default="",
+        help="只看指定赛道或行业，例如 AI视频、Agent、医疗、金融",
+    )
+    parser.add_argument(
+        "--hours",
+        type=int,
+        help="只保留过去 N 小时内的可核验动态",
+    )
+    parser.add_argument(
         "--feedback",
         metavar="ITEM",
         help="按 item_key、链接或标题记录一条内容反馈",
@@ -4571,6 +6040,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.feedback and not args.feedback_action:
         print("--feedback 必须同时指定 --feedback-action", file=sys.stderr)
         return 2
+    if args.hours is not None and args.hours < 1:
+        print("--hours 必须大于等于 1", file=sys.stderr)
+        return 2
     if args.feedback_action and not args.feedback:
         print("--feedback-action 必须同时指定 --feedback", file=sys.stderr)
         return 2
@@ -4586,6 +6058,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         config_path=args.config,
         dry_run=args.dry_run,
         history_enabled=history_enabled,
+        briefing_mode=args.mode,
+        focus=args.focus,
+        lookback_hours=args.hours,
     )
     output_dir = args.output_dir or briefing.config.get("output", {}).get(
         "output_dir", "."

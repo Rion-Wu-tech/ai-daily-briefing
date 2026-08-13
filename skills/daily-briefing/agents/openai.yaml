@@ -1,4 +1,4 @@
 interface:
   display_name: "AI Daily Briefing"
-  short_description: "在 Codex 中生成可点击的 AI/Web3 Markdown 早报"
-  default_prompt: "Use $daily-briefing to generate today’s AI/Web3 briefing as a clickable Markdown document."
+  short_description: "生成覆盖模型、应用、资本与产业链的 AI Markdown 简报"
+  default_prompt: "Use $daily-briefing to generate a source-linked AI briefing for my requested time window. Cover official model and product updates, the upstream-to-downstream industry chain, application adoption, funding and commercial events, and potentially viral stories. Save a clickable Markdown document in which every linked item is immediately followed by a specific one- or two-sentence Chinese explanation of who did what and why it matters."
