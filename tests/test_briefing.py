@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from bs4 import BeautifulSoup
 
-from briefing import DailyBriefing, save_output
+from briefing import DailyBriefing, parse_args, save_output
 from briefing_store import BriefingStore
 
 
@@ -51,8 +51,17 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertIn("business_opportunities", parsed["sections"])
         self.assertIn("watchlist", parsed["sections"])
         self.assertIn("model_releases", parsed["sections"])
+        self.assertIn("product_updates", parsed["sections"])
+        self.assertIn("industry_chain", parsed["sections"])
+        self.assertIn("cross_layer_connections", parsed["sections"])
+        self.assertIn("application_trends", parsed["sections"])
+        self.assertIn("ai_funding", parsed["sections"])
+        self.assertIn("industry_search_groups", parsed["sections"])
+        self.assertIn("industry_source_watchlist", parsed["sections"])
+        self.assertIn("viral_ai_news", parsed["sections"])
         self.assertIn("official_social_updates", parsed["sections"])
         self.assertIn("official_x_watchlist", parsed["sections"])
+        self.assertIn("official_x_search_groups", parsed["sections"])
         self.assertIn("official_model_watchlist", parsed["sections"])
         self.assertIn("official_product_watchlist", parsed["sections"])
         self.assertIn("editorial_queue", parsed["sections"])
@@ -71,6 +80,17 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertIn("timeliness_score", parsed["sections"]["ai_news"][0])
         self.assertIn("credibility_score", parsed["sections"]["ai_news"][0])
         self.assertEqual(parsed["metadata"]["editorial_mode"], "codex-ready")
+        self.assertGreater(
+            parsed["metadata"]["official_x_monitor"]["search_group_count"], 0
+        )
+        self.assertTrue(
+            parsed["metadata"]["industry_monitor"]["capital_is_cross_cutting"]
+        )
+        upstream_events = {
+            item["event_type"]
+            for item in parsed["sections"]["industry_chain"]["upstream"]
+        }
+        self.assertIn("infrastructure", upstream_events)
         self.assertTrue(
             all(
                 item.get("signal_type") != "model_release"
@@ -85,6 +105,12 @@ class DailyBriefingTests(unittest.TestCase):
 
         self.assertIn("## 相比昨天的新变化", markdown)
         self.assertIn("## 最新模型发布", markdown)
+        self.assertIn("## 产品与工具更新", markdown)
+        self.assertIn("## AI 产业链全景", markdown)
+        self.assertIn("## 产业链联动", markdown)
+        self.assertIn("## 应用层趋势", markdown)
+        self.assertIn("## AI 投融资与商业化", markdown)
+        self.assertIn("## 可能爆火的 AI 新闻", markdown)
         self.assertIn("## 模型公司官方账号动态", markdown)
         self.assertIn("## 今日必须看", markdown)
         self.assertIn("## 适合发 X 的选题", markdown)
@@ -107,6 +133,8 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertGreaterEqual(len(data["sections"]["x_topics"]), 1)
         self.assertGreaterEqual(len(data["sections"]["x_drafts"]), 1)
         self.assertGreaterEqual(len(data["sections"]["model_releases"]), 1)
+        self.assertGreaterEqual(len(data["sections"]["product_updates"]), 1)
+        self.assertGreaterEqual(len(data["sections"]["viral_ai_news"]), 1)
         self.assertTrue(
             all(
                 item["verification"] == "官方确认"
@@ -426,6 +454,34 @@ class DailyBriefingTests(unittest.TestCase):
             self.assertIn(item["summary_cn"], markdown)
             self.assertIn(item["summary_cn"], text)
 
+    def test_markdown_puts_specific_summary_immediately_after_news_title(self):
+        briefing = DailyBriefing(dry_run=True)
+        lines = []
+        item = {
+            "title": "示例公司发布企业 Agent",
+            "url": "https://example.com/agent",
+            "source": "示例公司",
+            "time": "今日",
+            "summary_cn": "示例公司上线企业 Agent，可自动处理客服工单，并向付费客户开放。",
+        }
+
+        briefing._append_markdown_news(lines, "AI 热点", [item])
+
+        self.assertEqual(lines[2], "1. [示例公司发布企业 Agent](https://example.com/agent)")
+        self.assertEqual(lines[3], f"   {item['summary_cn']}")
+
+    def test_editorial_packet_requires_specific_summary_for_every_item(self):
+        briefing = DailyBriefing(dry_run=True)
+        data = self.generate_quietly(briefing)
+        instructions = " ".join(data["metadata"]["editorial_instructions"])
+
+        self.assertIn("每一条", instructions)
+        self.assertIn("主体", instructions)
+        self.assertIn("不得用", instructions)
+        self.assertTrue(
+            all("raw_summary" in item for item in data["sections"]["editorial_queue"])
+        )
+
     def test_config_limits_are_applied(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             config_path = Path(tmpdir) / "config.yaml"
@@ -658,6 +714,300 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertEqual(rows[0]["published_at"], "2026-08-12T00:00:00+00:00")
         self.assertTrue(rows[0]["official"])
 
+    def test_official_x_search_groups_are_cn_first_and_bounded(self):
+        briefing = DailyBriefing(dry_run=True)
+
+        groups = briefing.official_x_search_groups(group_size=3)
+
+        self.assertGreater(len(groups), 1)
+        self.assertEqual(groups[0]["country"], "CN")
+        self.assertTrue(all(group["account_count"] <= 3 for group in groups))
+        self.assertTrue(all("-filter:replies" in group["query"] for group in groups))
+        self.assertIn("Medo_CodeFree", {h for group in groups for h in group["handles"]})
+
+    def test_product_and_viral_tracks_do_not_require_model_release(self):
+        briefing = DailyBriefing(dry_run=True)
+        item = {
+            "title": "Creator tool launches a new video workflow",
+            "summary": "The product update adds an API and collaborative editing.",
+            "category": "产品发布/更新",
+            "source": "Official Product Blog",
+            "section": "ai",
+            "section_name": "AI 热点",
+            "overall_score": 88,
+            "content_score": 90,
+            "timeliness_score": 96,
+            "credibility_score": 94,
+            "official": True,
+        }
+
+        self.assertEqual(len(briefing.generate_product_updates([item])), 1)
+        self.assertEqual(len(briefing.generate_viral_ai_news([item])), 1)
+
+    def test_product_updates_exclude_web3_items(self):
+        briefing = DailyBriefing(dry_run=True)
+        item = {
+            "title": "Web3 wallet launches an AI trading workflow",
+            "summary": "The product adds an AI assistant and API.",
+            "section": "web3",
+        }
+
+        self.assertEqual(briefing.generate_product_updates([item]), [])
+
+    def test_capital_events_keep_the_company_industry_layer(self):
+        briefing = DailyBriefing(dry_run=True)
+        item = {
+            "title": "AI workflow startup raises $80M Series B",
+            "summary": "The company will expand its enterprise AI workflow product.",
+            "url": "https://example.com/series-b",
+            "source": "Company Newsroom",
+            "official": True,
+            "industry_track": "capital",
+            "industry_layer_hint": "downstream",
+        }
+
+        briefing._enrich_news_item(item, "venture")
+
+        self.assertEqual(item["industry_layer"], "downstream")
+        self.assertEqual(item["event_type"], "funding")
+        self.assertIn("funding", item["event_types"])
+        self.assertEqual(item["funding_amount"].lower(), "$80m")
+        self.assertEqual(item["funding_round"].lower(), "series b")
+
+    def test_funding_verification_requires_official_or_multiple_sources(self):
+        briefing = DailyBriefing(dry_run=True)
+        unverified = {
+            "title": "AI automation startup raises $20M",
+            "summary": "The AI workflow company announced a funding round.",
+            "url": "https://example.com/media-only",
+            "source": "Industry Media",
+        }
+        verified = {
+            "title": "AI coding startup raises $30M Series A",
+            "summary": "The company raised capital for its enterprise AI coding product.",
+            "url": "https://example.com/company",
+            "source": "Company Newsroom",
+            "official": True,
+        }
+        for item in (unverified, verified):
+            briefing._enrich_news_item(item, "venture")
+
+        entries = briefing.generate_ai_funding([unverified, verified])
+        by_title = {entry["title"]: entry for entry in entries}
+
+        self.assertEqual(
+            by_title["AI automation startup raises $20M"]["funding_verification"],
+            "待官方复核",
+        )
+        self.assertTrue(
+            by_title["AI automation startup raises $20M"][
+                "requires_primary_confirmation"
+            ]
+        )
+        self.assertEqual(
+            by_title["AI coding startup raises $30M Series A"]["funding_verification"],
+            "已核验",
+        )
+
+    def test_industry_search_groups_are_cn_first_and_include_all_tracks(self):
+        briefing = DailyBriefing(dry_run=True, lookback_hours=36)
+
+        groups = briefing.industry_search_groups()
+
+        self.assertEqual(groups[0]["country"], "CN")
+        self.assertTrue({"applications", "capital", "infrastructure"} <= {
+            group["track"] for group in groups
+        })
+        self.assertTrue(all("past 36 hours" in group["query"] for group in groups))
+
+    def test_cross_layer_connections_do_not_claim_direct_causality(self):
+        briefing = DailyBriefing(dry_run=True)
+        upstream = {
+            "title": "New inference GPU lowers enterprise AI costs",
+            "summary": "The chip targets enterprise inference workloads.",
+            "url": "https://example.com/gpu",
+            "source": "Official Chip Blog",
+            "official": True,
+        }
+        downstream = {
+            "title": "Enterprise AI workflow expands customer deployment",
+            "summary": "The agent workflow is used by enterprise customers.",
+            "url": "https://example.com/workflow",
+            "source": "Official Product Blog",
+            "official": True,
+            "industry_track": "applications",
+            "industry_layer_hint": "downstream",
+        }
+        for item in (upstream, downstream):
+            briefing._enrich_news_item(item, "ai")
+
+        connections = briefing.generate_cross_layer_connections(
+            [upstream, downstream]
+        )
+
+        self.assertGreaterEqual(len(connections), 1)
+        self.assertIn("不代表", connections[0]["caveat"])
+
+    def test_research_deployment_is_not_mislabeled_as_customer_adoption(self):
+        briefing = DailyBriefing(dry_run=True)
+        item = {
+            "title": "Agent planning for reliable deployment",
+            "summary": "A paper evaluates agent planning under partial observability.",
+            "url": "https://arxiv.org/abs/example",
+            "source": "arXiv",
+        }
+
+        briefing._enrich_news_item(item, "ai")
+
+        self.assertEqual(item["event_type"], "research")
+        self.assertNotIn("adoption", item["event_types"])
+        self.assertEqual(item["industry_layer"], "midstream")
+
+    def test_technical_policy_is_not_mislabeled_as_regulation(self):
+        briefing = DailyBriefing(dry_run=True)
+        item = {
+            "title": "Agent policy optimization at test time",
+            "summary": "A research paper studies a learned policy for tool use.",
+            "url": "https://arxiv.org/abs/policy-example",
+            "source": "arXiv",
+        }
+
+        briefing._enrich_news_item(item, "ai")
+
+        self.assertNotIn("policy", item["event_types"])
+        self.assertIn("research", item["event_types"])
+
+    def test_customer_deployment_case_is_downstream(self):
+        briefing = DailyBriefing(dry_run=True)
+        item = {
+            "title": "How ExampleCo deployed over 50 AI agents on AWS",
+            "summary": "The company self-hosted a model and built a RAG platform.",
+            "url": "https://example.com/customer-case",
+            "source": "AWS Machine Learning Blog",
+            "official": True,
+            "industry_track": "infrastructure",
+            "industry_layer_hint": "upstream",
+        }
+
+        briefing._enrich_news_item(item, "ai")
+
+        self.assertEqual(item["event_type"], "adoption")
+        self.assertEqual(item["industry_layer"], "downstream")
+
+    def test_industry_feed_filters_corporate_culture_news(self):
+        briefing = DailyBriefing(dry_run=False, history_enabled=False)
+        briefing._get_content = lambda url: b"feed"
+        briefing._parse_feed_articles = lambda content, source, limit: [
+            {
+                "title": "NVIDIA CEO Tops Glassdoor Best CEOs List",
+                "summary": "An employee ranking mentions AI.",
+                "url": "https://example.com/ceo-ranking",
+                "source": source,
+            },
+            {
+                "title": "NVIDIA launches new AI inference infrastructure",
+                "summary": "The platform improves GPU inference throughput.",
+                "url": "https://example.com/inference",
+                "source": source,
+            },
+        ]
+
+        rows = briefing._fetch_industry_feed(
+            {
+                "name": "NVIDIA Blog",
+                "url": "https://example.com/feed",
+                "track": "infrastructure",
+                "layer_hint": "upstream",
+                "authority": "official",
+            },
+            4,
+        )
+
+        self.assertEqual([row["title"] for row in rows], [
+            "NVIDIA launches new AI inference infrastructure"
+        ])
+
+    def test_non_model_github_release_prefers_product_update_event(self):
+        briefing = DailyBriefing(dry_run=True)
+        item = {
+            "title": "agent-cli releases v2.0",
+            "summary": "The update adds deployment and subscription controls.",
+            "url": "https://github.com/example/agent-cli/releases/tag/v2.0",
+            "source": "GitHub Release · example/agent-cli",
+        }
+
+        briefing._enrich_news_item(item, "ai")
+
+        self.assertEqual(item["event_type"], "product_update")
+
+    def test_model_update_is_treated_as_model_event(self):
+        briefing = DailyBriefing(dry_run=True)
+        item = {
+            "title": "Qwen model update improves tool use",
+            "source": "Qwen 官方",
+        }
+
+        briefing._mark_official_model_release(item, "模型能力更新")
+
+        self.assertEqual(item["signal_type"], "model_release")
+        self.assertEqual(item["release_kind"], "模型能力更新")
+
+    def test_model_pricing_and_deprecation_updates_are_model_events(self):
+        briefing = DailyBriefing(dry_run=True)
+        cases = [
+            {
+                "title": "API pricing change",
+                "summary": "Qwen model pricing has been reduced.",
+            },
+            {
+                "title": "Deprecation notice",
+                "summary": "The Claude model will be retired next month.",
+            },
+        ]
+
+        for item in cases:
+            with self.subTest(title=item["title"]):
+                briefing._mark_official_model_release(item, "模型服务更新")
+                self.assertEqual(item["signal_type"], "model_release")
+
+    def test_targeted_filters_combine_mode_focus_and_hours(self):
+        briefing = DailyBriefing(
+            dry_run=True,
+            briefing_mode="products",
+            focus="医疗",
+            lookback_hours=48,
+        )
+        recent = datetime.now(timezone.utc).isoformat()
+        matching = {
+            "title": "Medical AI product update launches a clinical workflow",
+            "summary": "A healthcare app adds an API for doctors.",
+            "published_at": recent,
+            "section": "ai",
+        }
+        wrong_focus = {
+            "title": "AI video product update launches editing tools",
+            "summary": "A creator app adds an API.",
+            "published_at": recent,
+            "section": "ai",
+        }
+
+        self.assertTrue(briefing._matches_request(matching))
+        self.assertFalse(briefing._matches_request(wrong_focus))
+
+    def test_cli_accepts_targeted_briefing_options(self):
+        args = parse_args(
+            ["--mode", "models", "--focus", "AI视频", "--hours", "48"]
+        )
+
+        self.assertEqual(args.mode, "models")
+        self.assertEqual(args.focus, "AI视频")
+        self.assertEqual(args.hours, 48)
+
+    def test_cli_accepts_industry_application_and_funding_modes(self):
+        for mode in ("industry", "applications", "funding"):
+            with self.subTest(mode=mode):
+                self.assertEqual(parse_args(["--mode", mode]).mode, mode)
+
     def test_mistral_changelog_parser_only_keeps_model_release_blocks(self):
         briefing = DailyBriefing(dry_run=True)
         briefing.config["quality"]["model_release_max_age_days"] = 0
@@ -826,6 +1176,19 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertEqual(multi["source_count"], 2)
         self.assertEqual(trending["verification"], "单源信号")
         self.assertLess(trending["credibility_score"], official["credibility_score"])
+
+    def test_same_publisher_feeds_do_not_count_as_multiple_sources(self):
+        briefing = DailyBriefing(dry_run=True)
+
+        profile = briefing._source_profile(
+            {
+                "source": "TechCrunch / TechCrunch Venture RSS",
+                "related_links": [],
+            }
+        )
+
+        self.assertEqual(profile["source_count"], 1)
+        self.assertEqual(profile["verification"], "单源信号")
 
     def test_history_store_tracks_cross_day_rank_without_rerun_inflation(self):
         with tempfile.TemporaryDirectory() as tmpdir:

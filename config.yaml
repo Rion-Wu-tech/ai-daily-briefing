@@ -10,6 +10,33 @@ sources:
       url: "https://huggingface.co/blog/feed.xml"
   web3_news: "https://www.coindesk.com/"
   venture_news: "https://techcrunch.com/category/venture/"
+  # 产业链独立信号源。official 可直接确认自身公告；media/community 只做发现。
+  industry_feeds:
+    - {name: "NVIDIA Blog", url: "https://blogs.nvidia.com/feed/", track: "infrastructure", country: "US", layer_hint: "upstream", authority: "official"}
+    - {name: "AWS Machine Learning Blog", url: "https://aws.amazon.com/blogs/machine-learning/feed/", track: "infrastructure", country: "US", layer_hint: "upstream", authority: "official"}
+    - {name: "Google Cloud AI", url: "https://cloudblog.withgoogle.com/products/ai-machine-learning/rss/", track: "infrastructure", country: "US", layer_hint: "midstream", authority: "official"}
+    - {name: "Product Hunt", url: "https://www.producthunt.com/feed", track: "applications", country: "GLOBAL", layer_hint: "downstream", authority: "community", discovery_only: true}
+    - {name: "Crunchbase News", url: "https://news.crunchbase.com/feed/", track: "capital", country: "GLOBAL", layer_hint: "downstream", authority: "media", discovery_only: true}
+    - {name: "TechCrunch Venture RSS", url: "https://techcrunch.com/category/venture/feed/", track: "capital", country: "GLOBAL", layer_hint: "downstream", authority: "media", discovery_only: true}
+    - {name: "Data Center Dynamics", url: "https://www.datacenterdynamics.com/en/rss/", track: "infrastructure", country: "GLOBAL", layer_hint: "upstream", authority: "media", discovery_only: true}
+  # 无稳定免费接口的数据源进入 Codex 核验包，不伪装成已自动抓取。
+  industry_watchlist:
+    - {name: "AMD Newsroom", track: "infrastructure", country: "US", url: "https://www.amd.com/en/newsroom.html"}
+    - {name: "TSMC News", track: "infrastructure", country: "TW", url: "https://pr.tsmc.com/english/news"}
+    - {name: "AWS What's New", track: "infrastructure", country: "US", url: "https://aws.amazon.com/new/"}
+    - {name: "Azure Updates", track: "infrastructure", country: "US", url: "https://azure.microsoft.com/en-us/updates/"}
+    - {name: "机器之心", track: "applications", country: "CN", url: "https://www.jiqizhixin.com/"}
+    - {name: "36Kr", track: "capital", country: "CN", url: "https://36kr.com/"}
+    - {name: "IT桔子", track: "capital", country: "CN", url: "https://www.itjuzi.com/"}
+    - {name: "SEC EDGAR", track: "capital", country: "US", url: "https://www.sec.gov/search-filings"}
+    - {name: "HKEXnews", track: "capital", country: "CN", url: "https://www1.hkexnews.hk/"}
+    - {name: "Dealroom Signals", track: "capital", country: "GLOBAL", url: "https://dealroom.co/api/live-signals"}
+  industry_searches:
+    - {name: "中国 AI 应用与采用", track: "applications", country: "CN", query: "中国 AI 产品 上线 客户 采用 用户 增长 商业化"}
+    - {name: "全球 AI 应用与企业采用", track: "applications", country: "GLOBAL", query: "AI product launch enterprise adoption customers revenue"}
+    - {name: "中国 AI 投融资", track: "capital", country: "CN", query: "中国 人工智能 融资 并购 战略投资 估值 营收"}
+    - {name: "全球 AI 投融资", track: "capital", country: "GLOBAL", query: "AI startup funding acquisition valuation revenue"}
+    - {name: "AI 算力与基础设施", track: "infrastructure", country: "GLOBAL", query: "AI chip GPU data center cloud infrastructure capex inference cost"}
   github_trending: "https://github.com/trending"
   hacker_news:
     url: "https://hn.algolia.com/api/v1/search"
@@ -103,7 +130,8 @@ sources:
     - {name: "DeepSeek API Updates", country: "CN", url: "https://api-docs.deepseek.com/updates/"}
     - {name: "Z.ai New Releases", country: "CN", url: "https://docs.bigmodel.cn/cn/update/new-releases"}
     - {name: "Kimi What's New", country: "CN", url: "https://www.kimi.com/code/docs/kimi-code/whats-new.html"}
-    - {name: "MiniMax News", country: "CN", url: "https://www.minimaxi.com/news"}
+    - {name: "MiniMax Model Releases", country: "CN", url: "https://platform.minimaxi.com/docs/release-notes/models"}
+    - {name: "MiniMax Research", country: "CN", url: "https://www.minimaxi.com/news"}
     - {name: "Tencent Hunyuan", country: "CN", url: "https://hunyuan.tencent.com/"}
     - {name: "ByteDance Seed Blog", country: "CN", url: "https://seed.bytedance.com/en/blog"}
     - {name: "StepFun", country: "CN", url: "https://www.stepfun.com/"}
@@ -132,6 +160,7 @@ sources:
     - {name: "Manus Blog", country: "CN", category: "agent", url: "https://manus.im/blog"}
     - {name: "Kling AI", country: "CN", category: "video model", url: "https://kling.ai/"}
     - {name: "Vidu", country: "CN", category: "video model", url: "https://www.vidu.com/"}
+    - {name: "Baidu MeDo", country: "CN", category: "AI app builder", url: "https://intl.cloud.baidu.com/en/doc/MIAODA/index.html"}
     - {name: "Meituan LongCat", country: "CN", category: "model", url: "https://longcat.chat/"}
     - {name: "IBM Granite", country: "US", category: "model", url: "https://www.ibm.com/granite"}
     - {name: "Salesforce AI Research", country: "US", category: "model research", url: "https://www.salesforce.com/ai-research/"}
@@ -169,6 +198,7 @@ sources:
     - {name: "ByteDance Seed", handle: "ByteDanceSeed", country: "CN"}
     - {name: "Tencent Hunyuan", handle: "TencentHunyuan", country: "CN"}
     - {name: "Baidu", handle: "Baidu_Inc", country: "CN"}
+    - {name: "Baidu MeDo", handle: "Medo_CodeFree", country: "CN", category: "AI app builder"}
     - {name: "01.AI", handle: "01AI_Yi", country: "CN"}
     - {name: "Baichuan AI", handle: "BaichuanAI", country: "CN"}
     - {name: "Huawei Cloud / Pangu", handle: "HuaweiCloud1", country: "CN"}
@@ -256,6 +286,14 @@ limits:
   official_model_releases_per_org: 2
   model_changelog_per_source: 3
   model_releases: 8
+  product_updates: 8
+  viral_ai_news: 8
+  industry_chain_per_layer: 3
+  application_trends: 6
+  ai_funding: 6
+  industry_feed_per_source: 4
+  industry_signals: 24
+  cross_layer_connections: 3
   official_x_updates: 12
   official_social_updates: 8
   aihot: 5
@@ -277,6 +315,7 @@ quality:
   max_feed_age_days: 10
   model_release_max_age_days: 14
   official_x_lookback_hours: 48
+  funding_min_source_count: 2
   similarity_threshold: 0.76
   min_similarity_tokens: 4
 
