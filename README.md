@@ -4,9 +4,24 @@
 
 # AI Daily Briefing
 
-给 AI/Web3 自媒体创作者用的每日情报与选题系统。它会从厂商官方源、产业基础设施、应用产品、资本市场、媒体、开发者社区、论文和开源生态收集候选信号，整理成带可点击链接的 Markdown 中文早报，并为 Codex 提供可二次精编的结构化候选包。
+给 AI/Web3 自媒体创作者用的每日情报与选题系统。它会从厂商官方源、产业基础设施、应用产品、资本市场、媒体、开发者社区、论文和开源生态收集候选信号，整理成带可点击链接的 Markdown 中文早报和可搜索、筛选、收藏的交互 HTML，并为 Codex 提供可二次精编的结构化候选包。
 
 > **主打用法：在 Codex 里直接输入 `$daily-briefing 生成今日早报`，不需要 Hermes，也不需要打开 Telegram。**
+
+## 两种输出格式
+
+同一份简报会交付可点击的 Markdown 长文和可搜索、筛选、收藏的交互 HTML。HTML 是单文件，手机和桌面浏览器都能直接打开。
+
+<table>
+  <tr>
+    <th width="50%">Markdown 长文</th>
+    <th width="50%">交互 HTML</th>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/markdown-briefing-preview.png" alt="AI Daily Briefing Markdown 长文预览"></td>
+    <td><img src="docs/assets/html-briefing-preview.png" alt="AI Daily Briefing 交互 HTML 界面预览"></td>
+  </tr>
+</table>
 
 ## Codex 直接调用（推荐）
 
@@ -38,9 +53,10 @@ Codex 会自动完成抓取、去重、评分和二次精编，最终生成：
 
 ```text
 outputs/briefing_YYYY-MM-DD.md
+outputs/briefing_YYYY-MM-DD.html
 ```
 
-文档中的新闻标题和来源链接都可以直接点击。Python 模板负责稳定抓取和兜底，当前 Codex 模型负责最终选稿、中文解释、栏目编排与 X 草稿。
+Markdown 中的新闻标题和来源链接都可以直接点击。HTML 是不依赖服务器和外部 CDN 的单文件阅读器，支持搜索、栏目导航、可信度与产业层筛选、本地收藏、深浅主题、Markdown 下载及打印/PDF。Python 模板负责稳定抓取和兜底，当前 Codex 模型负责最终选稿、中文解释、栏目编排与 X 草稿。
 
 已有同名 Skill 时，显式备份并替换：
 
@@ -84,6 +100,7 @@ outputs/briefing_YYYY-MM-DD.md
 - 自动生成周复盘：持续信号、内容反馈、偏好类别、来源健康度和下周动作
 - `--editorial-packet` 生成 Codex 精编包，由当前 Codex 模型做最终选稿和中文改写；Python 模板始终作为确定性兜底
 - 仓库内置标准 Codex Skill、UI 元数据和便携 runner；可以从 Codex 直接调用并落盘 Markdown
+- Codex 精编 Markdown 通过质检后会生成同名交互 HTML；手工修改过的 Markdown 也可单独重新渲染
 - 自动过滤 AI 板块跑题内容，并合并同一链接或相似标题的重复报道
 - 媒体与官方源交替混排，单个来源失败时保留其他可用板块
 - 早报结尾自动生成简短的中英双语 Star 引导，并保留唯一的官方仓库链接
@@ -183,6 +200,12 @@ python briefing.py --format text
 
 # 输出 JSON，只打印不保存
 python briefing.py --format json --no-save
+
+# 直接从结构化数据生成交互 HTML
+python briefing.py --format html
+
+# 把 Codex 精编或手工修改后的 Markdown 转成交互 HTML
+python skills/daily-briefing/scripts/render-briefing-html.py outputs/briefing_YYYY-MM-DD.md
 
 # 输出 Codex 二次精编候选包
 python briefing.py --editorial-packet --output-file outputs/editorial_packet.json

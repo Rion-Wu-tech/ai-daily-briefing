@@ -1,6 +1,6 @@
 ---
 name: daily-briefing
-description: Generate a source-linked Chinese AI/Web3 daily briefing with official model releases, infrastructure, application adoption, funding, and cross-industry signals directly in Codex, then save the editorial result as Markdown. Use when the user asks for 今日早报, AI 简报, 最新模型发布, AI 产品更新, 应用层趋势, AI 投融资, 产业链, official AI updates, daily briefing, recent AI hotspots, GitHub trends, content ideas, briefing feedback, or a weekly briefing review.
+description: Generate a source-linked Chinese AI/Web3 daily briefing with official model releases, infrastructure, application adoption, funding, and cross-industry signals directly in Codex, then save the editorial result as Markdown plus a standalone interactive HTML reader. Use when the user asks for 今日早报, AI 简报, 交互版简报, HTML 简报, 最新模型发布, AI 产品更新, 应用层趋势, AI 投融资, 产业链, official AI updates, daily briefing, recent AI hotspots, GitHub trends, content ideas, briefing feedback, or a weekly briefing review.
 ---
 
 # Daily Briefing
@@ -51,6 +51,15 @@ python skills/daily-briefing/scripts/validate-briefing.py \
 ```
 
 When invoked from an installed skill, use the absolute path to `validate-briefing.py`. If validation fails, rewrite the named entries and run it again; do not silently return a partial draft.
+
+After validation passes, generate the companion interactive HTML by default:
+
+```bash
+python skills/daily-briefing/scripts/render-briefing-html.py \
+  "outputs/briefing_$(date +%F).md"
+```
+
+The renderer preserves the final Codex-edited Markdown and creates `outputs/briefing_YYYY-MM-DD.html`. It is a standalone file with local search, section navigation, confidence and industry-layer filters, browser-local bookmarks, Markdown download, print/PDF support, theme switching, and copy buttons for code or X drafts. It must not require a web server or external CDN. Return clickable links to both Markdown and HTML. If the user explicitly asks for only one format, honor that request.
 
 9. Keep every factual claim within the candidate packet or the first-party pages/posts checked above. Preserve original URLs and numbers. Do not invent missing dates, scores, funding amounts, customer counts, revenue, benchmark results, or source agreement.
 

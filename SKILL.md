@@ -44,6 +44,14 @@ python skills/daily-briefing/scripts/validate-briefing.py outputs/briefing_YYYY-
 python briefing.py --dry-run --no-save
 ```
 
+Codex 精编版通过质检后，默认再生成同名交互 HTML：
+
+```bash
+python skills/daily-briefing/scripts/render-briefing-html.py outputs/briefing_YYYY-MM-DD.md
+```
+
+HTML 保留最终 Markdown 内容，并提供搜索、栏目导航、可信度与产业层筛选、本地收藏、主题切换、Markdown 下载和打印/PDF；单文件可直接打开，不依赖服务器或外部 CDN。
+
 如果用户要纯文本：
 
 ```bash
@@ -85,7 +93,7 @@ python briefing.py --weekly-review
 
 周复盘包含持续信号、反馈偏好、来源成功率和下周动作。
 
-默认输出 Markdown，新闻标题和项目名都带可点击链接。排序同时参考内容价值、商业价值、个人匹配、时效和可信度；可信度标注为 `官方确认`、`多源印证` 或 `单源信号`。每条保留具体中文概括，不加“摘要”“一句话介绍”“中文总结”等前缀；质检器会拦截缺少概括、只有元数据或命中空泛模板的条目。
+默认交付 Markdown 和同名交互 HTML，新闻标题和项目名都带可点击链接。排序同时参考内容价值、商业价值、个人匹配、时效和可信度；可信度标注为 `官方确认`、`多源印证` 或 `单源信号`。每条保留具体中文概括，不加“摘要”“一句话介绍”“中文总结”等前缀；质检器会拦截缺少概括、只有元数据或命中空泛模板的条目。
 
 ## 重要规则
 

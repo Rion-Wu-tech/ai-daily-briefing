@@ -40,10 +40,11 @@ python -m unittest discover -s tests
 python briefing.py
 ```
 
-默认保存为带可点击链接的 Markdown。开头会有 `相比昨天的新变化`、`今日必须看`、`适合发 X`、`B端/商业机会`、`持续跟踪` 和三种形态的 `X 草稿`。每条都有五维评分、可信度标记和简短中文解释：
+默认保存为带可点击链接的 Markdown。Codex 精编并质检通过后，会再生成同名交互 HTML。开头会有 `相比昨天的新变化`、`今日必须看`、`适合发 X`、`B端/商业机会`、`持续跟踪` 和三种形态的 `X 草稿`。每条都有五维评分、可信度标记和简短中文解释：
 
 ```text
 outputs/briefing_YYYY-MM-DD.md
+outputs/briefing_YYYY-MM-DD.html
 ```
 
 ## 输出格式
@@ -58,9 +59,20 @@ python briefing.py --format text
 # JSON
 python briefing.py --format json
 
+# 单文件交互 HTML
+python briefing.py --format html
+
 # Codex 二次精编候选包
 python briefing.py --editorial-packet --output-file outputs/editorial_packet.json
 ```
+
+如果 Markdown 已经过 Codex 精编或手工修改，优先从最终文档生成 HTML，确保两份内容完全一致：
+
+```bash
+python skills/daily-briefing/scripts/render-briefing-html.py outputs/briefing_YYYY-MM-DD.md
+```
+
+HTML 无需启动服务器，直接打开即可使用搜索、目录、可信度与产业层筛选、本地收藏、主题切换、Markdown 下载和打印/PDF。
 
 ## 常用参数
 

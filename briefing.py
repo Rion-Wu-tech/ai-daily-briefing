@@ -4981,6 +4981,13 @@ class DailyBriefing:
             return json.dumps(data, ensure_ascii=False, indent=2)
         if output_format == "markdown":
             return self._format_markdown(data)
+        if output_format == "html":
+            from briefing_html import render_markdown_html
+
+            return render_markdown_html(
+                self._format_markdown(data),
+                source_filename=f"briefing_{datetime.now():%Y-%m-%d}.md",
+            )
         return self._format_text(data)
 
     def record_feedback(
@@ -5944,7 +5951,7 @@ def save_output(
     output_dir: str,
     output_file: Optional[str] = None,
 ) -> Path:
-    extension = {"text": "txt", "markdown": "md", "json": "json"}.get(
+    extension = {"text": "txt", "markdown": "md", "json": "json", "html": "html"}.get(
         output_format,
         "txt",
     )
@@ -5965,7 +5972,7 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser.add_argument("--config", default="config.yaml", help="配置文件路径")
     parser.add_argument(
         "--format",
-        choices=["text", "markdown", "json"],
+        choices=["text", "markdown", "json", "html"],
         help="覆盖 config.yaml 中的输出格式",
     )
     parser.add_argument("--output-dir", help="输出目录，默认读取 config.yaml")
@@ -6099,10 +6106,19 @@ def main(argv: Optional[List[str]] = None) -> int:
             print(str(exc), file=sys.stderr)
             return 2
         output_format = args.format or "markdown"
-        output = briefing.format_weekly_review(data, output_format)
+        if output_format == "html":
+            from briefing_html import render_markdown_html
+
+            markdown_output = briefing.format_weekly_review(data, "markdown")
+            output = render_markdown_html(
+                markdown_output,
+                source_filename=f"weekly_review_{datetime.now():%Y-%m-%d}.md",
+            )
+        else:
+            output = briefing.format_weekly_review(data, output_format)
         print(output)
         if not args.no_save:
-            extension = "json" if output_format == "json" else "md"
+            extension = {"json": "json", "html": "html"}.get(output_format, "md")
             output_file = args.output_file or str(
                 Path(output_dir) / f"weekly_review_{datetime.now():%Y-%m-%d}.{extension}"
             )

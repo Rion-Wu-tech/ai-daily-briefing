@@ -1,6 +1,8 @@
 import json
 import os
+import shutil
 import sqlite3
+import subprocess
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -12,6 +14,7 @@ from unittest.mock import patch
 from bs4 import BeautifulSoup
 
 from briefing import DailyBriefing, parse_args, save_output
+from briefing_html import render_markdown_html
 from briefing_store import BriefingStore
 
 
@@ -141,6 +144,63 @@ class DailyBriefingTests(unittest.TestCase):
                 for item in data["sections"]["model_releases"]
             )
         )
+
+    def test_html_output_is_interactive_and_self_contained(self):
+        briefing = DailyBriefing(dry_run=True)
+        data = self.generate_quietly(briefing)
+        html = briefing.format_output(data, "html")
+        soup = BeautifulSoup(html, "html.parser")
+
+        self.assertEqual(soup.html.get("lang"), "zh-CN")
+        self.assertIsNotNone(soup.select_one("#briefing-search"))
+        self.assertIsNotNone(soup.select_one("#confidence-filter"))
+        self.assertIsNotNone(soup.select_one("#layer-filter"))
+        self.assertIsNotNone(soup.select_one("#saved-filter"))
+        self.assertIsNotNone(soup.select_one("#source-markdown"))
+        self.assertGreaterEqual(len(soup.select(".briefing-section")), 8)
+        self.assertGreaterEqual(len(soup.select(".briefing-card")), 8)
+        self.assertIn("相比昨天的新变化", html)
+        self.assertIn("支持这个项目 / Support the Project", html)
+        self.assertNotIn("<script src=", html)
+        self.assertNotIn("<link rel=\"stylesheet\"", html)
+
+    def test_html_renderer_preserves_final_markdown_content(self):
+        markdown = (
+            "# 近 24 小时 AI 简报｜2026-08-26\n\n"
+            "## 最新模型发布与更新\n\n"
+            "1. [示例模型](https://example.com/model)\n\n"
+            "   示例公司公开了新模型，并提供 API 调用。\n\n"
+            "   **可信度：官方确认｜产业层：中游**\n"
+        )
+        html = render_markdown_html(markdown, source_filename="briefing.md")
+        soup = BeautifulSoup(html, "html.parser")
+        card = soup.select_one(".briefing-card")
+
+        self.assertEqual(soup.title.string, "近 24 小时 AI 简报｜2026-08-26")
+        self.assertEqual(card.get("data-confidence"), "official")
+        self.assertEqual(card.get("data-layer"), "midstream")
+        self.assertIn("示例公司公开了新模型", card.get_text(" ", strip=True))
+        self.assertEqual(card.a.get("href"), "https://example.com/model")
+
+    @unittest.skipUnless(shutil.which("node"), "需要 Node.js 检查浏览器脚本语法")
+    def test_generated_html_javascript_parses(self):
+        briefing = DailyBriefing(dry_run=True)
+        data = self.generate_quietly(briefing)
+        html = briefing.format_output(data, "html")
+        soup = BeautifulSoup(html, "html.parser")
+        browser_script = soup.find_all("script")[-1].string or ""
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            script_path = Path(tmpdir) / "briefing-ui.js"
+            script_path.write_text(browser_script, encoding="utf-8")
+            result = subprocess.run(
+                ["node", "--check", str(script_path)],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_x_drafts_are_structured_and_copyable(self):
         briefing = DailyBriefing(dry_run=True)
@@ -1003,6 +1063,9 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertEqual(args.focus, "AI视频")
         self.assertEqual(args.hours, 48)
 
+    def test_cli_accepts_html_output(self):
+        self.assertEqual(parse_args(["--format", "html"]).format, "html")
+
     def test_cli_accepts_industry_application_and_funding_modes(self):
         for mode in ("industry", "applications", "funding"):
             with self.subTest(mode=mode):
@@ -1149,6 +1212,13 @@ class DailyBriefingTests(unittest.TestCase):
 
             self.assertEqual(path.suffix, ".md")
             self.assertEqual(path.read_text(encoding="utf-8"), "hello")
+
+    def test_save_output_creates_html_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = save_output("<!doctype html>", "html", tmpdir)
+
+            self.assertEqual(path.suffix, ".html")
+            self.assertEqual(path.read_text(encoding="utf-8"), "<!doctype html>")
 
     def test_x_drafts_cover_three_content_shapes(self):
         briefing = DailyBriefing(dry_run=True)

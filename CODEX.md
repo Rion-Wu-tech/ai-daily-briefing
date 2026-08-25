@@ -60,7 +60,7 @@ python -m unittest discover -s tests
 python briefing.py
 ```
 
-默认会保存到 `outputs/briefing_YYYY-MM-DD.md`，里面的新闻标题和项目名都是可点击链接。候选池包含厂商官方模型发布源、算力与云基础设施、AI 应用、融资与商业信号、AI 编程/Agent 产品 Changelog、模型公司与产品 X 官方账号、媒体、官方 RSS/sitemap、Hacker News、arXiv、Hugging Face Trending、AI HOT 和指定 GitHub Releases。输出会给出上中下游产业链、跨层联动、最新模型发布、应用采用、投融资核验、官方账号动态、跨日变化、五维评分、商业机会和三种 X 草稿。
+默认会保存到 `outputs/briefing_YYYY-MM-DD.md`，质检通过后再生成 `outputs/briefing_YYYY-MM-DD.html`。Markdown 里的新闻标题和项目名都是可点击链接；HTML 提供搜索、目录、可信度与产业层筛选、本地收藏、主题切换和打印。候选池包含厂商官方模型发布源、算力与云基础设施、AI 应用、融资与商业信号、AI 编程/Agent 产品 Changelog、模型公司与产品 X 官方账号、媒体、官方 RSS/sitemap、Hacker News、arXiv、Hugging Face Trending、AI HOT 和指定 GitHub Releases。输出会给出上中下游产业链、跨层联动、最新模型发布、应用采用、投融资核验、官方账号动态、跨日变化、五维评分、商业机会和三种 X 草稿。
 
 产业位置和事件类型必须分开：`industry_layer` 只允许上游、中游、下游；融资、并购、财报、产品更新和客户采用写入 `event_types`。资本不是第四层，融资后的应用公司仍然属于下游。
 
@@ -80,6 +80,14 @@ python skills/daily-briefing/scripts/validate-briefing.py outputs/briefing_YYYY-
 
 检查每个可点击条目后是否紧跟具体中文概括，并拦截只有来源/评分或空泛模板的内容。
 
+质检通过后运行：
+
+```bash
+python skills/daily-briefing/scripts/render-briefing-html.py outputs/briefing_YYYY-MM-DD.md
+```
+
+转换器读取最终 Markdown，不会退回抓取阶段的模板内容。生成的是单文件 HTML，不需要启动服务器或加载外部 CDN。
+
 常用变体：
 
 ```bash
@@ -91,6 +99,7 @@ python briefing.py --mode funding --hours 168 --format markdown
 python briefing.py --mode industry --hours 24 --format markdown
 python briefing.py --mode hotspots --focus "Agent" --hours 24 --format markdown
 python briefing.py --format json --no-save
+python briefing.py --format html
 python briefing.py --no-save --no-history
 python briefing.py --output-file outputs/today.md --format markdown
 ```

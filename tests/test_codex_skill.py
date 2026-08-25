@@ -109,6 +109,43 @@ class CodexSkillTests(unittest.TestCase):
         self.assertIn("## 应用层趋势", result.stdout)
         self.assertIn("## AI 投融资与商业化", result.stdout)
 
+    def test_markdown_to_html_renderer_is_portable(self):
+        renderer = SKILL_DIR / "scripts" / "render-briefing-html.py"
+        source = renderer.read_text(encoding="utf-8")
+
+        self.assertTrue(os.access(renderer, os.X_OK))
+        self.assertNotIn("/Users/rion", source)
+        self.assertIn("briefing_html", source)
+        self.assertIn("DAILY_BRIEFING_PROJECT", source)
+        self.assertIn("daily-briefing-runtime", source)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            markdown = Path(tmpdir) / "briefing.md"
+            output = Path(tmpdir) / "briefing.html"
+            markdown.write_text(
+                "# AI 简报\n\n## 今日必须看\n\n"
+                "1. [官方更新](https://example.com)\n\n"
+                "   示例公司发布了新功能。\n",
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    str(ROOT / ".venv" / "bin" / "python"),
+                    str(renderer),
+                    str(markdown),
+                    "--output-file",
+                    str(output),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(output.is_file())
+            self.assertIn("briefing-search", output.read_text(encoding="utf-8"))
+
     def test_summary_validator_accepts_specific_chinese_explanation(self):
         validator = SKILL_DIR / "scripts" / "validate-briefing.py"
         with tempfile.TemporaryDirectory() as tmpdir:

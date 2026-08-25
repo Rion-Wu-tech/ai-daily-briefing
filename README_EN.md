@@ -4,13 +4,28 @@
 
 # AI Daily Briefing
 
-A daily intelligence and topic-discovery system for AI/Web3 content creators. It collects candidate signals from first-party vendors, infrastructure providers, application products, capital markets, media outlets, developer communities, research papers, and open-source ecosystems, then turns them into a source-linked Markdown briefing. It also produces a structured editorial packet that Codex can refine into a polished final edition.
+A daily intelligence and topic-discovery system for AI/Web3 content creators. It collects candidate signals from first-party vendors, infrastructure providers, application products, capital markets, media outlets, developer communities, research papers, and open-source ecosystems, then turns them into a source-linked Markdown briefing and a standalone interactive HTML reader. It also produces a structured editorial packet that Codex can refine into a polished final edition.
 
 Every retained item is followed immediately by a concise Chinese explanation covering who did what and the most important result or impact, so readers can understand the event without opening the source link.
 
 After Codex saves the briefing, a bundled Markdown validator rejects linked items that lack a Chinese explanation, contain only metadata, or use known generic filler.
 
 > **Recommended workflow: enter `$daily-briefing Generate today's briefing` directly in Codex. No Hermes or Telegram required.**
+
+## Two Output Formats
+
+Each briefing can be delivered as a clickable Markdown document and a searchable, filterable, bookmarkable interactive HTML reader. The HTML output is a standalone file that opens directly on desktop and mobile browsers.
+
+<table>
+  <tr>
+    <th width="50%">Markdown document</th>
+    <th width="50%">Interactive HTML</th>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/markdown-briefing-preview.png" alt="AI Daily Briefing Markdown document preview"></td>
+    <td><img src="docs/assets/html-briefing-preview.png" alt="AI Daily Briefing interactive HTML preview"></td>
+  </tr>
+</table>
 
 ## Use Directly in Codex (Recommended)
 
@@ -42,9 +57,10 @@ Codex fetches, normalizes, deduplicates, scores, and edits the source pool, then
 
 ```text
 outputs/briefing_YYYY-MM-DD.md
+outputs/briefing_YYYY-MM-DD.html
 ```
 
-News titles and source links in the document are clickable. The Python layer handles reliable collection and deterministic fallback output, while the current Codex model performs final selection, explanations, section planning, and X draft generation.
+News titles and source links are clickable. The standalone HTML reader adds local search, section navigation, confidence and industry-layer filters, browser-local bookmarks, theme switching, Markdown download, and print/PDF support without a server or external CDN. The Python layer handles reliable collection and deterministic fallback output, while the current Codex model performs final selection, explanations, section planning, and X draft generation.
 
 If a Skill with the same name already exists, explicitly back it up and replace it:
 
@@ -320,11 +336,19 @@ history:
 
 ## Output Formats
 
-Three formats are supported. Markdown is the default:
+Four formats are supported. Markdown is the default, and HTML is the interactive standalone reader:
 
 - `markdown`: clickable links; suitable for article drafts, newsletters, Feishu, and Obsidian
 - `text`: suitable for Telegram, WeChat, and instant messaging
 - `json`: suitable for downstream automation
+- `html`: a standalone interactive reader with search, filters, local bookmarks, theme switching, Markdown download, and print/PDF support
+
+Render structured data directly, or convert the final Codex-edited Markdown so both versions stay identical:
+
+```bash
+python briefing.py --format html
+python skills/daily-briefing/scripts/render-briefing-html.py outputs/briefing_YYYY-MM-DD.md
+```
 
 Default Markdown structure:
 
