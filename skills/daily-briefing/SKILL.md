@@ -31,7 +31,17 @@ Append the selected flags to the helper command before generating the editorial 
 
 When invoked from an installed skill, use the absolute path to this skill's `scripts/run-daily-briefing.sh`.
 
-2. Read `sections.industry_chain`, `sections.cross_layer_connections`, `sections.model_releases`, `sections.product_updates`, `sections.application_trends`, `sections.ai_funding`, `sections.viral_ai_news`, `sections.official_social_updates`, and `sections.editorial_queue`. Treat infrastructure, model/platform, product/function, application adoption, capital/commercial events, and potentially viral news as parallel intelligence tracks. Use the current Codex model to select the strongest items, write concrete Chinese explanations, organize sections, and produce varied X drafts. `raw_summary` contains source material for factual rewriting; do not discard it when the deterministic Chinese hint is generic.
+2. Read `sections.editorial_plan` and `sections.unique_editorial_sections` first. The plan is the global event ledger for the final briefing: every `story_id` has exactly one primary section and one canonical linked news card. Then read `sections.industry_chain`, `sections.cross_layer_connections`, `sections.model_releases`, `sections.product_updates`, `sections.application_trends`, `sections.ai_funding`, `sections.viral_ai_news`, `sections.official_social_updates`, and `sections.editorial_queue` as overlapping discovery and analysis lenses. Never copy those legacy lenses section by section into the final document. Use the current Codex model to write concrete Chinese explanations, add genuinely different analysis, and produce varied X drafts. `raw_summary` contains source material for factual rewriting; do not discard it when the deterministic Chinese hint is generic.
+
+### Global Event Deduplication
+
+- Keep one global event ledger for the entire document. Merge tracking-parameter URL variants, exact repeated titles, and similar-title reports about the same event before section planning. Keep supporting sources inside the canonical event instead of creating another news card.
+- Assign each retained event exactly one primary section. Model, product, application, funding, viral, official-social, AI, Web3, venture, and GitHub sections own linked news cards; no card may appear in a second section.
+- Treat `story_id` as internal audit metadata. Never expose it as a final card, list item, heading, anchor, or instruction that makes the reader jump elsewhere to understand the content.
+- Keep a derived view only when it adds a standalone comparison, connection, action, or finished draft that the reader can understand without resolving an internal ID. Omit the entire section when it is empty, merely re-lists IDs/titles/links, or paraphrases the primary news summary without a new conclusion.
+- Put the linked primary news sections before industry summaries, opportunity lists, and creator material. Express “must read” through ranking and placement in the owning section, not through a duplicate index at the top.
+- If deduplication frees space, fill it only with the next unseen event that is timely, credible, relevant, and substantively useful. Never lower the evidence or relevance threshold just to reach a fixed item count.
+- Before saving, require zero duplicate linked news cards and a 100% unique canonical-link ratio. A transformed X draft may reuse verified facts, but it must not masquerade as a second news report.
 
 3. When `metadata.official_x_monitor.mode` is `codex_web_search`, execute every query in `sections.official_x_search_groups` for the requested window. The groups are country-aware and put China first. Retain direct `https://x.com/<handle>/status/<id>` links, and add only posts published by the configured account. Also check `sections.official_model_watchlist` and `sections.official_product_watchlist` for vendors and products that do not expose a stable feed.
 
@@ -63,21 +73,33 @@ The renderer preserves the final Codex-edited Markdown and creates `outputs/brie
 
 9. Keep every factual claim within the candidate packet or the first-party pages/posts checked above. Preserve original URLs and numbers. Do not invent missing dates, scores, funding amounts, customer counts, revenue, benchmark results, or source agreement.
 
-10. Use clickable Markdown titles. Immediately below every retained news, model release, product update, funding event, official X post, and GitHub project, write a specific one- or two-sentence Chinese explanation before metadata or scores. It must identify who did what and include the most useful result, number, availability change, or impact supported by the source. A reader should understand the event without opening the link. Do not use generic filler such as `值得关注`, `可作为行业观察`, or `核心看点是工具链还不成熟` as the explanation. Do not add labels such as `中文总结`, `摘要`, or `一句话介绍` before explanations.
-
-11. Use these sections in order when relevant:
+10. Use clickable Markdown titles, but make each retained story understandable without opening its link. Under every news, model release, product update, funding event, official X post, and GitHub project, write these three exact labeled blocks before metadata:
 
 ```text
-相比昨天的新变化
-AI 产业链全景
-产业链联动
+**发生了什么：** 用 1 至 2 句交代主体、动作、对象和当前状态。
+**关键细节：** 提炼至少两项来源明确披露的能力、数字、可用范围、工作流、客户、时间或限制；用分号分开，不复制标题。
+**为什么重要：** 用 1 句说明它会改变谁的工作流、成本、能力边界、竞争位置或商业判断。
+```
+
+The three blocks should normally total 120–260 Chinese characters. Add `**待确认：**` only when a material claim, number, availability boundary, or causal interpretation is not verified. Put source, confidence, industry layer, and scores in a final `**来源与评分：**` line; this metadata is secondary and must not substitute for the story. Rewrite from `raw_summary` and checked source facts instead of compressing the existing deterministic Chinese hint. If the packet and source do not support at least two concrete details, omit the story rather than publishing a headline card. Do not use generic filler such as `值得关注`, `可作为行业观察`, or `核心看点是工具链还不成熟`.
+
+11. Use the first group as the primary reading flow, followed by the second group only when it adds net-new value. Omit empty or redundant sections completely; do not render placeholders such as `本轮没有符合条件的独立事件`:
+
+```text
 最新模型发布与更新
 产品与工具更新
 应用层趋势
 可能爆火的 AI 新闻
 AI 投融资与商业化
 模型公司官方账号动态
-今日必须看
+AI 热点
+Web3 热点
+投资 & 经济
+GitHub 优质项目
+
+相比昨天的新变化（仅保留真实跨日变化）
+AI 产业链概览
+产业链联动
 适合发 X
 B端/商业机会
 持续跟踪
@@ -91,7 +113,7 @@ X 草稿
 
 14. End every final Markdown briefing with a concise bilingual support section. Use the heading `支持这个项目 / Support the Project`, invite readers in natural Chinese and English to Star the project if the briefing was useful, and include the canonical repository link exactly once: `https://github.com/Rion-Wu-tech/ai-daily-briefing`. Keep this section brief and place it after source notes so it does not compete with the briefing.
 
-15. Before saving, audit every clickable item in the final Markdown. Reject the draft if any item is followed only by a source, tag, score, confidence label, or link. Also reject repeated template explanations that could describe several unrelated stories. Rewrite those entries from `raw_summary` and the original source facts. The bundled validator enforces the minimum structural and anti-filler checks; editorial factuality still requires Codex review.
+15. Before saving, audit every clickable item in the final Markdown. Reject the draft if any story lacks `发生了什么`, `关键细节`, or `为什么重要`, provides fewer than two concrete source-supported details, or is followed only by a source, tag, score, confidence label, or link. Reject repeated canonical URLs, repeated linked titles, second news cards for the same `story_id`, visible internal IDs, empty sections, ID-only index sections, and template explanations that could describe several unrelated stories. Rewrite those entries from `raw_summary` and the original source facts. The bundled validator enforces required story blocks, minimum Chinese information depth, anti-filler, canonical-URL, and exact-title checks; semantic event identity, section usefulness, and editorial factuality still require Codex review.
 
 ## Official Model Release And Update Radar
 
@@ -131,15 +153,19 @@ Preserve the full source pool and default complete briefing. Apply targeting onl
 
 These options can be combined. Example: `--mode products --focus "医疗" --hours 168`.
 
-## Deterministic Fallback
+## Deterministic Diagnostic Candidate
 
-If the Codex editorial pass cannot be completed, generate a complete linked Markdown file directly:
+The deterministic Markdown command is for collection diagnostics and recovery only. It is not a publishable fallback because it cannot guarantee source-specific Chinese rewriting. If the Codex editorial pass cannot be completed, preserve the editorial packet, state that no validated briefing was produced, and do not return a headline-style draft to the user.
+
+To inspect the deterministic candidate locally:
 
 ```bash
 skills/daily-briefing/scripts/run-daily-briefing.sh \
   --format markdown \
-  --output-file "outputs/briefing_$(date +%F).md"
+  --output-file "outputs/briefing_diagnostic_$(date +%F).md"
 ```
+
+Only promote it to `briefing_YYYY-MM-DD.md` after the three-block editorial rewrite and validator both pass.
 
 ## Validate The Workflow
 

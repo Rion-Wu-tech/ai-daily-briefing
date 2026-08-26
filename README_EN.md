@@ -8,7 +8,7 @@ A daily intelligence and topic-discovery system for AI/Web3 content creators. It
 
 Every retained item is followed immediately by a concise Chinese explanation covering who did what and the most important result or impact, so readers can understand the event without opening the source link.
 
-After Codex saves the briefing, a bundled Markdown validator rejects linked items that lack a Chinese explanation, contain only metadata, or use known generic filler.
+After Codex saves the briefing, a bundled Markdown validator rejects linked items that lack the required Chinese `what happened`, `key details`, and `why it matters` blocks, fall below the minimum information depth, contain only metadata, or use known generic filler.
 
 > **Recommended workflow: enter `$daily-briefing Generate today's briefing` directly in Codex. No Hermes or Telegram required.**
 
@@ -53,14 +53,14 @@ $daily-briefing Find AI application adoption and funding from the past seven day
 $daily-briefing Generate this week's briefing review
 ```
 
-Codex fetches, normalizes, deduplicates, scores, and edits the source pool, then saves the final result to:
+Codex fetches, normalizes, globally deduplicates events, scores, and edits the source pool, then saves the final result to:
 
 ```text
 outputs/briefing_YYYY-MM-DD.md
 outputs/briefing_YYYY-MM-DD.html
 ```
 
-News titles and source links are clickable. The standalone HTML reader adds local search, section navigation, confidence and industry-layer filters, browser-local bookmarks, theme switching, Markdown download, and print/PDF support without a server or external CDN. The Python layer handles reliable collection and deterministic fallback output, while the current Codex model performs final selection, explanations, section planning, and X draft generation.
+News titles and source links are clickable. The standalone HTML reader adds local search, section navigation, confidence and industry-layer filters, browser-local bookmarks, theme switching, Markdown download, and print/PDF support without a server or external CDN. The Python layer handles reliable collection and a deterministic diagnostic candidate, while the current Codex model performs final selection, source-specific Chinese explanations, section planning, and X draft generation. The diagnostic candidate is not published unless the editorial depth validator passes.
 
 If a Skill with the same name already exists, explicitly back it up and replace it:
 
@@ -93,7 +93,8 @@ If a Skill with the same name already exists, explicitly back it up and replace 
 - Daily topic ideas that turn news into publishable Chinese content angles
 - Codex-friendly offline validation with `--dry-run`, unit tests, and stable output paths
 - A concise Chinese explanation for every news item and project, without repetitive labels
-- Opening sections for changes since yesterday, the AI industry chain, cross-layer connections, model releases, product updates, application trends, AI funding and commercialization, potentially viral stories, must-read items, X opportunities, B2B opportunities, and watchlist signals
+- A global event ledger that assigns each story a unique internal `story_id` and exactly one primary section; IDs never appear in the reader, and derived views are omitted unless they add standalone value
+- A news-first reading flow for model releases, product updates, application trends, funding, and potentially viral stories, followed only by non-empty industry analysis, X opportunities, B2B opportunities, and watchlist signals
 - Ranking across content value, business value, personal relevance, timeliness, and credibility, with calibrated scores instead of inflated perfect ratings
 - Confidence labels: `Officially confirmed`, `Corroborated by multiple sources`, and `Single-source signal`
 - X drafts in three formats: single post, thread, and visual/video script
@@ -101,9 +102,9 @@ If a Skill with the same name already exists, explicitly back it up and replace 
 - Feedback actions for opened, saved, drafted, published, or dismissed items, allowing future ranking to learn from real choices
 - Source health tracking for success rate, item count, and latency, with a seven-day health report
 - Weekly reviews covering persistent signals, content feedback, preferred categories, source health, and next-week actions
-- `--editorial-packet` for a Codex-ready candidate package; the current Codex model handles final editorial judgment while Python remains the deterministic fallback
+- `--editorial-packet` for a Codex-ready candidate package; the current Codex model handles final editorial judgment, while Python output remains a diagnostic candidate until the three-block rewrite and depth validator pass
 - A standard Codex Skill, UI metadata, and portable runner bundled in the repository
-- Automatic filtering of off-topic AI stories and merging of duplicate links or similar headlines
+- Automatic filtering of off-topic AI stories, merging of duplicate links or similar headlines, and whole-document enforcement that each event appears in only one primary section
 - Alternating media and official sources, with graceful degradation when one source fails
 - A concise bilingual Star invitation at the end of each briefing, using the single canonical repository link
 
