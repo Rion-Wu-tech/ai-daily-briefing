@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -13,7 +14,7 @@ from unittest.mock import patch
 
 from bs4 import BeautifulSoup
 
-from briefing import DailyBriefing, parse_args, save_output
+from briefing import DailyBriefing, canonical_url, parse_args, save_output
 from briefing_html import render_markdown_html
 from briefing_store import BriefingStore
 
@@ -29,15 +30,20 @@ class DailyBriefingTests(unittest.TestCase):
         output = briefing.format_output(data, "text")
 
         self.assertIn("Rion 每日早报", output)
-        self.assertIn("AI 热点", output)
-        self.assertIn("Web3 热点", output)
+        self.assertIn("最新模型发布与更新", output)
+        self.assertIn("产品与工具更新", output)
+        self.assertIn("应用层趋势", output)
+        self.assertIn("可能爆火的 AI 新闻", output)
+        self.assertIn("AI 投融资与商业化", output)
         self.assertIn("GitHub 优质项目", output)
-        self.assertIn("相比昨天的新变化", output)
-        self.assertIn("今日必须看", output)
         self.assertIn("B端/商业机会", output)
-        self.assertIn("持续跟踪", output)
         self.assertIn("适合发 X 的选题", output)
-        self.assertIn("今日选题素材", output)
+        self.assertNotIn("相比昨天的新变化", output)
+        self.assertNotIn("今日必须看", output)
+        self.assertNotIn("今日选题素材", output)
+        self.assertNotIn("AI 热点", output)
+        self.assertNotIn("Web3 热点", output)
+        self.assertNotRegex(output, r"\bE\d{2}\b")
 
     def test_json_output_is_valid(self):
         briefing = DailyBriefing(dry_run=True)
@@ -68,6 +74,8 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertIn("official_model_watchlist", parsed["sections"])
         self.assertIn("official_product_watchlist", parsed["sections"])
         self.assertIn("editorial_queue", parsed["sections"])
+        self.assertIn("editorial_plan", parsed["sections"])
+        self.assertIn("unique_editorial_sections", parsed["sections"])
         self.assertIn("x_topics", parsed["sections"])
         self.assertIn("x_drafts", parsed["sections"])
         self.assertIn("summary_cn", parsed["sections"]["ai_news"][0])
@@ -106,23 +114,35 @@ class DailyBriefingTests(unittest.TestCase):
         data = self.generate_quietly(briefing)
         markdown = briefing.format_output(data, "markdown")
 
-        self.assertIn("## 相比昨天的新变化", markdown)
-        self.assertIn("## 最新模型发布", markdown)
+        self.assertIn("## 最新模型发布与更新", markdown)
         self.assertIn("## 产品与工具更新", markdown)
-        self.assertIn("## AI 产业链全景", markdown)
+        self.assertIn("## AI 产业链概览", markdown)
         self.assertIn("## 产业链联动", markdown)
         self.assertIn("## 应用层趋势", markdown)
         self.assertIn("## AI 投融资与商业化", markdown)
         self.assertIn("## 可能爆火的 AI 新闻", markdown)
-        self.assertIn("## 模型公司官方账号动态", markdown)
-        self.assertIn("## 今日必须看", markdown)
         self.assertIn("## 适合发 X 的选题", markdown)
         self.assertIn("## B端/商业机会", markdown)
-        self.assertIn("## 持续跟踪", markdown)
         self.assertIn("## X 草稿", markdown)
+        self.assertNotIn("## 相比昨天的新变化", markdown)
+        self.assertNotIn("## 模型公司官方账号动态", markdown)
+        self.assertNotIn("## 今日必须看", markdown)
+        self.assertNotIn("## 持续跟踪", markdown)
+        self.assertNotIn("## AI 热点", markdown)
+        self.assertNotIn("## Web3 热点", markdown)
+        self.assertNotIn("## 今日选题素材", markdown)
+        self.assertNotRegex(markdown, r"\bE\d{2}\b")
+        self.assertLess(
+            markdown.index("## 最新模型发布与更新"),
+            markdown.index("## AI 产业链概览"),
+        )
         self.assertIn("角度：", markdown)
         self.assertIn("形式：", markdown)
         self.assertIn("标签：", markdown)
+        self.assertIn("**发生了什么：**", markdown)
+        self.assertIn("**关键细节：**", markdown)
+        self.assertIn("**为什么重要：**", markdown)
+        self.assertIn("**来源与评分：**", markdown)
         self.assertIn("综合 ", markdown)
         self.assertIn("可信 ", markdown)
         self.assertNotIn("Rion 相关度", markdown)
@@ -145,6 +165,45 @@ class DailyBriefingTests(unittest.TestCase):
             )
         )
 
+    def test_editorial_plan_assigns_every_story_to_one_primary_section(self):
+        briefing = DailyBriefing(dry_run=True)
+        data = self.generate_quietly(briefing)
+        plan = data["sections"]["editorial_plan"]
+        grouped = data["sections"]["unique_editorial_sections"]
+
+        keys = [item["item_key"] for item in plan]
+        grouped_keys = [
+            item["item_key"]
+            for items in grouped.values()
+            for item in items
+        ]
+
+        self.assertEqual(len(keys), len(set(keys)))
+        self.assertEqual(sorted(keys), sorted(grouped_keys))
+        self.assertTrue(all(item.get("story_id") for item in plan))
+        self.assertTrue(all(item.get("primary_section") for item in plan))
+        self.assertEqual(
+            data["metadata"]["editorial_uniqueness"]["duplicate_story_count"],
+            0,
+        )
+        self.assertEqual(
+            data["metadata"]["editorial_uniqueness"]["unique_link_ratio"],
+            100,
+        )
+
+    def test_markdown_contains_each_canonical_story_link_once(self):
+        briefing = DailyBriefing(dry_run=True)
+        data = self.generate_quietly(briefing)
+        markdown = briefing.format_output(data, "markdown")
+        urls = re.findall(r"\]\((https?://[^)]+)\)", markdown)
+        story_urls = [
+            canonical_url(url)
+            for url in urls
+            if "github.com/Rion-Wu-tech/ai-daily-briefing" not in url
+        ]
+
+        self.assertEqual(len(story_urls), len(set(story_urls)))
+
     def test_html_output_is_interactive_and_self_contained(self):
         briefing = DailyBriefing(dry_run=True)
         data = self.generate_quietly(briefing)
@@ -159,7 +218,34 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertIsNotNone(soup.select_one("#source-markdown"))
         self.assertGreaterEqual(len(soup.select(".briefing-section")), 8)
         self.assertGreaterEqual(len(soup.select(".briefing-card")), 8)
-        self.assertIn("相比昨天的新变化", html)
+        self.assertEqual(
+            len(soup.select(".story-card")),
+            len(data["sections"]["editorial_plan"]),
+        )
+        self.assertEqual(
+            len(soup.select(".story-card .story-what")),
+            len(data["sections"]["editorial_plan"]),
+        )
+        self.assertEqual(
+            len(soup.select(".story-card .story-details")),
+            len(data["sections"]["editorial_plan"]),
+        )
+        self.assertEqual(
+            len(soup.select(".story-card .story-impact")),
+            len(data["sections"]["editorial_plan"]),
+        )
+        self.assertEqual(
+            len(soup.select(".story-card details.story-metadata")),
+            len(data["sections"]["editorial_plan"]),
+        )
+        self.assertIn("独立新闻", html)
+        self.assertIn(
+            "document.querySelectorAll('.briefing-section:not(.briefing-intro)')",
+            html,
+        )
+        self.assertNotIn("相比昨天的新变化", html)
+        self.assertNotIn("今日必须看", html)
+        self.assertNotIn("本轮没有符合条件的独立事件", html)
         self.assertIn("支持这个项目 / Support the Project", html)
         self.assertNotIn("<script src=", html)
         self.assertNotIn("<link rel=\"stylesheet\"", html)
@@ -804,6 +890,25 @@ class DailyBriefingTests(unittest.TestCase):
         self.assertEqual(len(briefing.generate_product_updates([item])), 1)
         self.assertEqual(len(briefing.generate_viral_ai_news([item])), 1)
 
+    def test_specific_adoption_summary_does_not_leak_into_infrastructure(self):
+        briefing = DailyBriefing(dry_run=True)
+        creator = {
+            "title": "Creator product adds enterprise paid collaboration",
+            "summary": "The AI creator product is used by enterprise teams and adds paid collaboration.",
+            "source": "Official Product Blog",
+        }
+        infrastructure = {
+            "title": "Inference infrastructure expands for enterprise workloads",
+            "summary": "The platform adds deployment capacity for enterprise inference.",
+            "source": "Infrastructure Blog",
+        }
+
+        creator_summary = briefing._summarize_news_cn(creator, "ai")
+        infrastructure_summary = briefing._summarize_news_cn(infrastructure, "ai")
+
+        self.assertIn("付费协作工作流", creator_summary)
+        self.assertNotIn("付费协作工作流", infrastructure_summary)
+
     def test_product_updates_exclude_web3_items(self):
         briefing = DailyBriefing(dry_run=True)
         item = {
@@ -1167,6 +1272,41 @@ class DailyBriefingTests(unittest.TestCase):
                 official,
             )
         )
+
+    def test_same_milestone_event_clusters_different_headline_wording(self):
+        briefing = DailyBriefing(dry_run=True)
+        official = {
+            "title": (
+                "With Groq 3 LPX in Full Production, NVIDIA Extends "
+                "Vera Rubin Inference for Agents"
+            ),
+            "url": "https://official.example.com/lpx-production",
+            "source": "NVIDIA Blog",
+            "official": True,
+        }
+        media = {
+            "title": (
+                "Nvidia’s ultra-low-latency AI inference LPX racks hit "
+                "full production"
+            ),
+            "url": "https://media.example.com/lpx-racks",
+            "source": "Data Center Dynamics",
+        }
+        different_product = {
+            "title": (
+                "NVIDIA Vera Rubin NVL72 sets a new efficiency standard "
+                "for AI agents"
+            ),
+            "url": "https://official.example.com/nvl72",
+            "source": "NVIDIA Blog",
+            "official": True,
+        }
+
+        rows = briefing._dedupe_items([media, official, different_product])
+
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["url"], official["url"])
+        self.assertEqual(len(rows[0]["related_links"]), 1)
 
     def test_cross_section_dedup_uses_best_matching_section(self):
         briefing = DailyBriefing(dry_run=True)
