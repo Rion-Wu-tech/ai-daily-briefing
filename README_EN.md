@@ -427,6 +427,44 @@ If collection logic changed, also run:
 python briefing.py --no-save
 ```
 
+<a id="community"></a>
+
+## Paid Community | Rion AI Practice & Commercialization Club
+
+**This is an optional long-term paid community, not a required user group for the open-source project. You do not need to pay or join the community to use this repository.**
+
+AI Daily Briefing is one of several projects I maintain. The community focuses on practical AI tools and industry applications, content creation, workflows, and commercialization for people who want to apply AI to real work and business.
+
+- **Knowledge base:** Practical methods, tutorials, and resources for AI, content, and commercialization.
+- **Skills and tools:** Early project updates, field notes, installation guides, and usage tutorials.
+- **Practice exchange:** Occasional project reviews, workflow breakdowns, and industry application experience.
+- **Resources and collaboration:** Relevant events, industry resources, and suitable opportunities shared with members.
+
+**WeChat: `a668899universe`. Add the note `Paid Community` when contacting me.** See the [community introduction](https://github.com/Rion-Wu-tech/wechat-intelligence-hub/blob/main/docs/COMMUNITY.md) for participation boundaries. Current pricing follows Rion's latest public enrollment notice and the amount confirmed before payment.
+
+Only need the tool? Follow this README and [CODEX.md](./CODEX.md). Reproducible problems can be reported through [Issues](https://github.com/Rion-Wu-tech/ai-daily-briefing/issues); never submit secrets or private data. Community membership is not a software purchase and does not cover model APIs, X API access, or other third-party services.
+
+<a id="services"></a>
+
+## AI Guidance, Team Training, Custom Workflows, and Partnerships | Priced Separately
+
+The following services are also available by inquiry. Scope, feasibility, deliverables, and pricing are confirmed before work begins:
+
+- **One-on-one practical AI guidance:** Codex, Skill setup, AI intelligence gathering, content creation, or personal workflow support, booked by the hour.
+- **AI training for companies and teams:** Hands-on training designed around specific roles and business needs, including AI tools, knowledge bases, content and marketing, agents, or automation workflows.
+- **Custom Skills, agents, and automation workflows:** Project-based implementation with agreed deliverables, acceptance criteria, schedule, and maintenance scope.
+- **Brand and product partnerships:** Content collaboration inquiries for relevant AI tools and products, evaluated by actual experience and audience fit. Format, channel, timing, and pricing are agreed separately; reach, follower growth, and conversions are not guaranteed.
+
+**WeChat: `a668899universe`. Use the note `AI Guidance`, `Team Training`, `Custom Build`, or `Partnership`.** Briefly describe your industry, the problem to solve, and desired timing. Training inquiries may include roles and attendee count; partnership inquiries may include a product link, goals, budget range, and schedule.
+
+Services and community membership are priced separately. **Joining the community is not required, and these services are not included by default in the community fee.** The public project remains available under the MIT License. Public updates will also continue on [X @rionaifantasy](https://x.com/rionaifantasy).
+
+## Support the Project
+
+If AI Daily Briefing saves you time finding useful AI signals or content opportunities, please consider giving the project a Star. Your support helps it keep improving and helps more people discover this open-source intelligence workflow.
+
+[Star on GitHub](https://github.com/Rion-Wu-tech/ai-daily-briefing)
+
 ## License
 
 MIT
