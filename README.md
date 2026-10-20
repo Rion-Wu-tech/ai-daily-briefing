@@ -424,6 +424,46 @@ python briefing.py --dry-run --no-save
 python briefing.py --no-save
 ```
 
+<a id="community"></a>
+
+## 付费社群｜Rion AI 实践与商业化 Club
+
+**这是自愿加入的长期付费社群，不是免费的项目用户群。使用本仓库不需要付费，也不需要加入社群。**
+
+AI Daily Briefing 只是我持续维护的项目之一。社群主要交流 AI 工具与行业应用、自媒体、工作流和商业化，适合希望把 AI 真正用进内容、工作和业务的人。
+
+- **知识库**：整理 AI、自媒体与商业化的方法、教程和资料，并持续更新。
+- **Skill 与工具**：优先同步项目进展、实测经验、安装教程和使用方法。
+- **实践交流**：不定期分享真实项目复盘、内容工作流和行业应用经验。
+- **资源与合作**：分享相关活动和行业资源，有合适的机会时与群友交流。
+
+**微信号：`a668899universe`，添加时请备注「付费社群」。** 具体权益与参与边界见[社群介绍](https://github.com/Rion-Wu-tech/wechat-intelligence-hub/blob/main/docs/COMMUNITY.md)；当前价格以 Rion 最新公开招生说明及付款前确认的报价为准，了解后再决定是否加入。
+
+只想使用工具？直接按照本 README 和 [CODEX.md](./CODEX.md) 操作即可。可复现的问题可通过 [Issue](https://github.com/Rion-Wu-tech/ai-daily-briefing/issues) 反馈，请勿提交密钥或私人数据。社群费不是软件购买费，也不会代付模型、X API 或其他第三方服务费用。
+
+<a id="services"></a>
+
+## AI 指导、企业培训、定制与商务合作｜单独收费
+
+除付费社群外，也接受以下服务需求咨询。先确认目标与可行性，再约定范围、交付和报价：
+
+- **一对一 AI 实践指导**：围绕 Codex、Skill 配置、AI 信息获取、内容创作或个人工作流问题，按小时预约。
+- **企业／团队 AI 培训（B 端）**：结合具体岗位与业务需求，设计 AI 工具、知识库、内容营销、智能体或自动化工作流的实操培训。
+- **Skill、智能体与自动化工作流定制**：面向个人或企业的具体任务，评估后约定交付物、验收标准、排期和维护范围。
+- **品牌合作／产品推广**：接受 AI 工具、产品及相关品牌的内容合作咨询，根据实际体验与受众匹配度确认形式、渠道、排期和报价；不承诺曝光量、涨粉或转化结果。
+
+**微信号：`a668899universe`，添加时请按需求备注「AI 指导」「企业培训」「定制」或「商务合作」。** 请简要说明所在行业、希望解决的问题和预期时间；企业培训可补充参训岗位与人数，品牌合作可补充产品链接、目标、预算范围和排期。
+
+以上服务与社群分别收费，**不要求先加入社群，也不默认包含在社群费用内**。公开项目仍可按 MIT License 免费使用，不承诺收益或无限支持。公开更新也会继续发布在 [X @rionaifantasy](https://x.com/rionaifantasy)。
+
+## 支持这个项目 / Support the Project
+
+如果 AI Daily Briefing 帮你节省了筛选信息的时间，或者找到了值得继续跟进的选题和机会，欢迎给项目点个 Star。你的支持会让它持续更新，也让更多人用上这套开源 AI 情报工作流。
+
+If AI Daily Briefing saves you time finding useful AI signals or content opportunities, please consider giving the project a Star. Your support helps it keep improving.
+
+[前往 GitHub，点个 Star / Star on GitHub](https://github.com/Rion-Wu-tech/ai-daily-briefing)
+
 ## License
 
 MIT
