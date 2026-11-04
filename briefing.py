@@ -816,6 +816,49 @@ TITLE_STOPWORDS = {
     "with",
 }
 
+DECISIVE_EVENT_PHRASES = (
+    "full production",
+    "general availability",
+    "generally available",
+    "now available",
+    "public preview",
+    "open beta",
+)
+
+EVENT_IDENTITY_STOPWORDS = TITLE_STOPWORDS | {
+    "ai",
+    "agent",
+    "agents",
+    "amazon",
+    "anthropic",
+    "artificial",
+    "availability",
+    "available",
+    "aws",
+    "full",
+    "general",
+    "google",
+    "inference",
+    "intelligence",
+    "launch",
+    "launched",
+    "launches",
+    "meta",
+    "microsoft",
+    "model",
+    "models",
+    "nvidia",
+    "openai",
+    "preview",
+    "production",
+    "public",
+    "qwen",
+    "release",
+    "released",
+    "update",
+    "updates",
+}
+
 
 def canonical_url(value: str) -> str:
     """Normalize URLs so tracking parameters do not create duplicate stories."""
@@ -1526,7 +1569,32 @@ class DailyBriefing:
         threshold = float(
             self.config.get("quality", {}).get("similarity_threshold", 0.76)
         )
-        return title_similarity(item_title(left), item_title(right)) >= threshold
+        if title_similarity(item_title(left), item_title(right)) >= threshold:
+            return True
+
+        left_title = re.sub(
+            r"[^a-z0-9]+", " ", clean_text(item_title(left)).lower()
+        ).strip()
+        right_title = re.sub(
+            r"[^a-z0-9]+", " ", clean_text(item_title(right)).lower()
+        ).strip()
+        shared_milestone = next(
+            (
+                phrase
+                for phrase in DECISIVE_EVENT_PHRASES
+                if phrase in left_title and phrase in right_title
+            ),
+            "",
+        )
+        if not shared_milestone:
+            return False
+
+        common_tokens = left_tokens & right_tokens
+        identity_tokens = common_tokens - EVENT_IDENTITY_STOPWORDS
+        shorter_coverage = len(common_tokens) / min(
+            len(left_tokens), len(right_tokens)
+        )
+        return bool(identity_tokens) and len(common_tokens) >= 4 and shorter_coverage >= 0.4
 
     def _merge_news_items(
         self,
@@ -3729,6 +3797,10 @@ class DailyBriefing:
             "raw_summary": clean_text(
                 item.get("summary", "") or item.get("description", "")
             ),
+            "what_happened": clean_text(item.get("what_happened", "")),
+            "key_details": clean_text(item.get("key_details", "")),
+            "why_it_matters": clean_text(item.get("why_it_matters", "")),
+            "caveat": clean_text(item.get("caveat", "")),
             "score": item.get("score", 0),
             "overall_score": item.get("overall_score", item.get("rion_score", 0)),
             "rion_score": item.get("rion_score", item.get("score", 0)),
@@ -4240,7 +4312,9 @@ class DailyBriefing:
 
         def add_item(item: Dict[str, Any], enforce_source_cap: bool = True) -> bool:
             key = item.get("item_key") or item.get("url") or item_title(item)
-            if key in seen_keys:
+            if key in seen_keys or any(
+                self._items_duplicate(existing, item) for existing in selected
+            ):
                 return False
             family = source_family(item)
             if enforce_source_cap and source_counts.get(family, 0) >= 3:
@@ -4283,6 +4357,117 @@ class DailyBriefing:
             entry["editorial_hint"] = self._make_x_angle(item)
             queue.append(entry)
         return queue
+
+    def _primary_editorial_section(self, item: Dict[str, Any]) -> str:
+        """Assign one and only one story-bearing section to an event."""
+        event_types = set(item.get("event_types", []))
+        section_key = item.get("section_key", item.get("section", ""))
+
+        if item.get("signal_type") == "model_release":
+            return "model_releases"
+        if item.get("signal_type") == "official_social":
+            return "official_social_updates"
+        if event_types & {"funding", "acquisition", "ipo", "earnings"}:
+            return "ai_funding"
+        if event_types & {"adoption", "partnership", "pricing"} and (
+            item.get("industry_layer") == "downstream"
+            or item.get("industry_track") == "applications"
+        ):
+            return "application_trends"
+        if self._looks_like_product_update(item):
+            return "product_updates"
+        if section_key == "github":
+            return "github_projects"
+        if section_key == "web3":
+            return "web3_news"
+        if section_key == "venture":
+            return "venture_news"
+        if (
+            int(item.get("content_score", 0) or 0) >= 70
+            or int(item.get("popularity", 0) or 0) >= 80
+        ):
+            return "viral_ai_news"
+        return "ai_news"
+
+    def generate_editorial_plan(
+        self,
+        editorial_queue: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """Create the global event ledger used by every final output format."""
+        labels = {
+            "model_releases": "最新模型发布与更新",
+            "product_updates": "产品与工具更新",
+            "application_trends": "应用层趋势",
+            "viral_ai_news": "可能爆火的 AI 新闻",
+            "ai_funding": "AI 投融资与商业化",
+            "official_social_updates": "模型公司官方账号动态",
+            "ai_news": "AI 热点",
+            "web3_news": "Web3 热点",
+            "venture_news": "投资 & 经济",
+            "github_projects": "GitHub 优质项目",
+        }
+        plan: List[Dict[str, Any]] = []
+        seen_urls: set[str] = set()
+        seen_titles: set[str] = set()
+
+        for queued in editorial_queue:
+            item = dict(queued)
+            url_key = canonical_url(item.get("url", ""))
+            title_key = re.sub(
+                r"[^a-z0-9\u3400-\u9fff]+",
+                "",
+                clean_text(item.get("title", "")).lower(),
+            )
+            if (url_key and url_key in seen_urls) or (
+                title_key and title_key in seen_titles
+            ):
+                continue
+
+            primary_section = self._primary_editorial_section(item)
+            item["story_id"] = f"E{len(plan) + 1:02d}"
+            item["primary_section"] = primary_section
+            item["primary_section_label"] = labels[primary_section]
+            item["secondary_angles"] = []
+            if item.get("history_status") in {"首次出现", "持续升温"}:
+                item["secondary_angles"].append("changes")
+            if item.get("industry_layer"):
+                item["secondary_angles"].append("industry_chain")
+            if int(item.get("business_score", 0) or 0) >= 55:
+                item["secondary_angles"].append("business_opportunity")
+            if int(item.get("repeat_count", 0) or 0) > 0:
+                item["secondary_angles"].append("watchlist")
+            if int(item.get("content_score", 0) or 0) >= 60:
+                item["secondary_angles"].append("x_candidate")
+            plan.append(item)
+            if url_key:
+                seen_urls.add(url_key)
+            if title_key:
+                seen_titles.add(title_key)
+
+        for item in plan[: min(3, len(plan))]:
+            item["secondary_angles"].append("must_read")
+        return plan
+
+    def group_editorial_plan(
+        self,
+        editorial_plan: List[Dict[str, Any]],
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        section_order = (
+            "model_releases",
+            "product_updates",
+            "application_trends",
+            "viral_ai_news",
+            "ai_funding",
+            "official_social_updates",
+            "ai_news",
+            "web3_news",
+            "venture_news",
+            "github_projects",
+        )
+        grouped = {section: [] for section in section_order}
+        for item in editorial_plan:
+            grouped[item["primary_section"]].append(item)
+        return grouped
 
     def generate_x_topics(self, items: List[Dict[str, Any]]) -> List[Dict[str, str]]:
         limit = self._limit("x_topics")
@@ -4612,10 +4797,20 @@ class DailyBriefing:
                     f"{source} 发布或更新了 {short_title(title, 48)}，"
                     "优先核对能力、上下文、价格、许可和可用渠道。"
                 )
+            if (
+                "creator" in haystack
+                and "enterprise" in haystack
+                and "collaboration" in haystack
+            ):
+                source = clean_text(item.get("source", "产品官方"))
+                return (
+                    f"{source} 表示这款 AI 产品已进入企业团队使用，"
+                    "并新增付费协作工作流，产品范围从个人使用扩展到团队部署。"
+                )
             rules = [
                 (("glossary", "definition", "term", "hallucination"), "这是一篇 AI 概念科普，适合拆成术语卡片或新手入门内容。"),
                 (("browser", "browsers", "chrome", "safari", "search"), "浏览器正在从搜索入口变成 AI 工作入口，值得关注新的流量分发位置。"),
-                (("agent", "agents", "agentic"), "AI agent 的落地速度和瓶颈被重新讨论，核心看点是工具链还没完全成熟。"),
+                (("agent", "agents", "agentic"), "报道聚焦 AI agent 的实际落地，需核对它接入的工作流、权限边界和任务交付证据。"),
                 (("mistral",), "Mistral 代表 OpenAI 之外的模型竞争路线，适合观察欧洲 AI、开源生态和企业落地差异。"),
                 (("openai",), "OpenAI 的资本、产品或政策动作继续牵动行业预期，是判断 AI 风向的重要信号。"),
                 (("office", "productivity"), "AI 办公套件竞争升温，生产力工具正在出现新的替代和重做机会。"),
@@ -4868,8 +5063,6 @@ class DailyBriefing:
             for item in ai_news
             if item.get("signal_type") not in {"model_release", "official_social"}
         ]
-        x_topics = self.generate_x_topics(all_items)
-        x_drafts = self.generate_x_drafts(all_items)
         topics = self.generate_topics(
             general_ai_news,
             web3_news,
@@ -4877,6 +5070,28 @@ class DailyBriefing:
             github_projects,
         )
         editorial_queue = self.generate_editorial_queue(ranked_candidates)
+        editorial_plan = self.generate_editorial_plan(editorial_queue)
+        unique_editorial_sections = self.group_editorial_plan(editorial_plan)
+        editorial_urls = [
+            canonical_url(item.get("url", ""))
+            for item in editorial_plan
+            if canonical_url(item.get("url", ""))
+        ]
+        unique_editorial_urls = set(editorial_urls)
+        unique_link_ratio = (
+            round(len(unique_editorial_urls) / len(editorial_urls) * 100)
+            if editorial_urls
+            else 100
+        )
+        editorial_candidates: List[Dict[str, Any]] = []
+        for item in editorial_plan:
+            candidate = dict(item)
+            candidate["display_title"] = item.get("title", "")
+            candidate["summary_cn"] = item.get("summary", "")
+            candidate["section"] = item.get("section_key", "")
+            editorial_candidates.append(candidate)
+        x_topics = self.generate_x_topics(editorial_candidates)
+        x_drafts = self.generate_x_drafts(editorial_candidates)
 
         if self.history_store is not None:
             selected_keys = {
@@ -4896,6 +5111,21 @@ class DailyBriefing:
                 "editorial_mode": "codex-ready",
                 "candidate_count": len(ranked_candidates),
                 "unfiltered_candidate_count": unfiltered_candidate_count,
+                "editorial_uniqueness": {
+                    "story_count": len(editorial_plan),
+                    "linked_story_count": len(editorial_urls),
+                    "unique_link_count": len(unique_editorial_urls),
+                    "duplicate_story_count": (
+                        len(editorial_urls) - len(unique_editorial_urls)
+                    ),
+                    "unique_link_ratio": unique_link_ratio,
+                    "target_unique_link_ratio": 100,
+                    "contract": (
+                        "Each story_id has exactly one primary section and is internal "
+                        "audit metadata. Final derived sections must add standalone "
+                        "value without exposing IDs or repeating a news card."
+                    ),
+                },
                 "request": {
                     "mode": self.briefing_mode,
                     "focus": self.focus,
@@ -4924,6 +5154,12 @@ class DailyBriefing:
                     "capital_is_cross_cutting": True,
                 },
                 "editorial_instructions": [
+                    "先以 sections.editorial_plan 作为全局事件台账，并按 sections.unique_editorial_sections 写最终新闻卡片；同一个 story_id 只能进入一个主栏目。",
+                    "sections.model_releases、product_updates、application_trends 等旧字段是可重叠的发现视角，不得直接逐栏复制到最终稿。",
+                    "story_id 只用于内部去重与审计，最终稿不得把编号输出成卡片、列表项、标题或跳转入口。",
+                    "派生视角只有在能独立增加比较、关联、行动建议或创作成品时才保留；空栏目、只重复编号或标题的栏目、以及没有新增信息的栏目必须整体省略。",
+                    "先展示带来源链接的主新闻栏目，再展示产业链概览、B端机会和 X 选题等派生内容；不得让目录或编号索引挡在第一条有效新闻之前。",
+                    "若去重释放了版面，只能从 editorial_plan 之外补入新的、可核验且符合时效与主题的事件；没有合格候选时宁可少写，不用低价值信息凑数。",
                     "只保留能核验的事实和原始链接，不补写来源中没有的数字。",
                     "优先选择新变化、多源印证、官方更新和可转成内容或商业动作的信号。",
                     "模型发布必须优先引用厂商官网、官方 Changelog、官方模型卡或官方 Release，不用媒体转述替代发布确认。",
@@ -4937,9 +5173,9 @@ class DailyBriefing:
                     "严格遵守 metadata.request：mode=models 时同时包含模型首发、版本升级、能力更新、API 可用性和模型价格变化；focus 有值时只保留该赛道或行业；lookback_hours 有值时保留该时间段内的热点，并说明边界口径。",
                     "检查 sections.official_social_updates；若为空，按 sections.official_x_watchlist 搜索请求时间窗内的官方 X 帖子，并保留 x.com 原帖链接。",
                     "执行 sections.official_x_search_groups 的全部批次；CN 批次优先，未完成时不得把账号已配置写成已经检索。",
-                    "每一条保留到最终简报的新闻、模型、产品、融资、官方 X 动态或开源项目，都必须在可点击标题下一行写 1 至 2 句简短中文概括。概括必须包含主体、具体动作或变化，以及最关键的结果、数字或影响；只写来源明确支持的事实。",
-                    "不得用‘值得关注’‘可作为行业观察’‘核心看点是工具链还不成熟’等通用判断代替新闻概括，也不得只留下标题、链接、标签或评分。写完后逐条检查所有可点击条目是否都有不重复的具体中文概括。",
-                    "不要在概括前添加‘中文总结’‘摘要’或‘一句话介绍’标签。X 草稿按单帖、thread、视觉或视频脚本区分。",
+                    "每一条保留到最终简报的新闻、模型、产品、融资、官方 X 动态或开源项目，都必须在可点击标题下依次写‘发生了什么’‘关键细节’‘为什么重要’三段中文深摘要；先交代主体、动作、对象和当前状态，三段通常合计 120 至 260 个中文字符。",
+                    "‘关键细节’至少包含两项来源明确披露的能力、数字、可用范围、工作流、客户、时间或限制；必须从 raw_summary 或已核对的原始来源重写，不能只压缩 deterministic summary。证据不足时删除本条，不用标题卡凑数。",
+                    "来源、可信度、产业层和评分统一放入‘来源与评分’次层；重大数字、可用性边界或因果解释仍不确定时增加‘待确认’。不得用‘值得关注’‘可作为行业观察’‘核心看点是工具链还不成熟’等通用判断代替正文。X 草稿按单帖、thread、视觉或视频脚本区分。",
                 ],
             },
             "sections": {
@@ -4971,6 +5207,8 @@ class DailyBriefing:
                 "github_projects": github_projects,
                 "topics": topics,
                 "editorial_queue": editorial_queue,
+                "editorial_plan": editorial_plan,
+                "unique_editorial_sections": unique_editorial_sections,
             },
         }
 
@@ -5146,91 +5384,26 @@ class DailyBriefing:
         return self.format_output(data, fmt)
 
     def _format_text(self, data: Dict[str, Any]) -> str:
-        meta = data["metadata"]
-        sections = data["sections"]
-        lines = [
-            f"==== Rion 每日早报 · {meta['date']} {meta['weekday']} ====",
-            "",
-        ]
-        request = meta.get("request", {})
-        if any(request.get(key) not in {None, "", "all"} for key in ("mode", "focus", "lookback_hours")):
-            lines.extend(
-                [
-                    "筛选条件："
-                    f"模式={request.get('mode', 'all')} · "
-                    f"方向={request.get('focus') or '全部'} · "
-                    f"时间={str(request.get('lookback_hours')) + '小时' if request.get('lookback_hours') else '默认'}",
-                    "",
-                ]
-            )
-
-        self._append_text_highlights(lines, sections.get("changes", []), "相比昨天的新变化")
-        mode = request.get("mode", "all")
-        if mode in {"all", "industry"}:
-            self._append_text_industry_chain(
-                lines, sections.get("industry_chain", {})
-            )
-            self._append_text_cross_layer_connections(
-                lines, sections.get("cross_layer_connections", [])
-            )
-        if mode in {"all", "models"}:
-            self._append_text_model_releases(lines, sections.get("model_releases", []))
-        if mode in {"all", "products", "applications", "industry"}:
-            self._append_text_highlights(
-                lines, sections.get("product_updates", []), "产品与工具更新"
-            )
-            self._append_text_highlights(
-                lines, sections.get("application_trends", []), "应用层趋势"
-            )
-        if mode in {"all", "hotspots"}:
-            self._append_text_highlights(
-                lines, sections.get("viral_ai_news", []), "可能爆火的 AI 新闻"
-            )
-        if mode in {"all", "hotspots", "funding", "industry"}:
-            self._append_text_highlights(
-                lines, sections.get("ai_funding", []), "AI 投融资与商业化"
-            )
-        self._append_text_official_social(
-            lines, sections.get("official_social_updates", [])
+        markdown = self._format_markdown(data)
+        text = re.sub(
+            r"\[([^\]]+)\]\((https?://[^)]+)\)",
+            lambda match: f"{match.group(1)}\n{match.group(2)}",
+            markdown,
         )
-        self._append_text_highlights(lines, sections.get("must_read", []), "今日必须看")
-        self._append_text_x_topics(lines, sections.get("x_topics", []))
-        self._append_text_highlights(
-            lines,
-            sections.get("business_opportunities", []),
-            "B端/商业机会",
-        )
-        self._append_text_highlights(lines, sections.get("watchlist", []), "持续跟踪")
-        self._append_text_x_drafts(lines, sections.get("x_drafts", []))
-        general_ai_news = [
-            item
-            for item in sections["ai_news"]
-            if item.get("signal_type") != "model_release"
-        ]
-        self._append_news_section(lines, "AI 热点", general_ai_news)
-        self._append_news_section(lines, "Web3 热点", sections["web3_news"])
-        self._append_news_section(lines, "投资 & 经济", sections["venture_news"])
-        self._append_project_section(lines, sections["github_projects"])
-        self._append_topic_section(lines, sections["topics"])
-
-        lines.extend(
-            [
-                "━━━━━━━━━━━━━━━━━━",
-                f"{meta['date']} 早报完毕",
-                "━━━━━━━━━━━━━━━━━━",
-                "",
-                "支持这个项目 / Support the Project",
-                "如果这份早报帮你节省了筛选 AI 信息的时间，欢迎给项目点个 Star。你的支持会让它继续更新、继续变得更好。",
-                "If this briefing saves you time finding useful AI signals, please consider giving the project a Star. Your support helps it keep improving.",
-                f"项目地址 / Repository: {REPOSITORY_URL}",
-            ]
-        )
-        return "\n".join(lines)
+        text = re.sub(r"(?m)^#{1,6}\s+", "", text)
+        text = re.sub(r"(?m)^>\s?", "", text)
+        text = text.replace("```text", "").replace("```", "")
+        text = text.replace("`", "").replace("**", "")
+        text = text.replace("---", "━━━━━━━━━━━━━━━━━━")
+        return text
 
     def _format_markdown(self, data: Dict[str, Any]) -> str:
         meta = data["metadata"]
         sections = data["sections"]
         lines = [f"# Rion 每日早报 · {meta['date']} {meta['weekday']}", ""]
+        editorial_plan = sections.get("editorial_plan", [])
+        grouped = sections.get("unique_editorial_sections", {})
+        uniqueness = meta.get("editorial_uniqueness", {})
         request = meta.get("request", {})
         if any(request.get(key) not in {None, "", "all"} for key in ("mode", "focus", "lookback_hours")):
             parts = []
@@ -5242,109 +5415,161 @@ class DailyBriefing:
                 parts.append(f"时间：过去 `{request['lookback_hours']}` 小时")
             lines.extend([f"> {' · '.join(parts)}", ""])
 
-        self._append_markdown_highlights(
-            lines,
-            sections.get("changes", []),
-            "相比昨天的新变化",
+        lines.extend(
+            [
+                f"> 本期收录 `{len(editorial_plan)}` 个独立事件，已合并同一事件的重复报道；每条新闻只在一个栏目完整展示。",
+                "",
+            ]
         )
+
         mode = request.get("mode", "all")
-        if mode in {"all", "industry"}:
-            self._append_markdown_industry_chain(
-                lines,
-                sections.get("industry_chain", {}),
-            )
-            self._append_markdown_cross_layer_connections(
-                lines,
-                sections.get("cross_layer_connections", []),
-            )
         if mode in {"all", "models"}:
-            self._append_markdown_model_releases(
+            self._append_markdown_editorial_stories(
                 lines,
-                sections.get("model_releases", []),
+                grouped.get("model_releases", []),
+                "最新模型发布与更新",
             )
         if mode in {"all", "products", "applications", "industry"}:
-            self._append_markdown_highlights(
+            self._append_markdown_editorial_stories(
                 lines,
-                sections.get("product_updates", []),
+                grouped.get("product_updates", []),
                 "产品与工具更新",
             )
-            self._append_markdown_highlights(
+            self._append_markdown_editorial_stories(
                 lines,
-                sections.get("application_trends", []),
+                grouped.get("application_trends", []),
                 "应用层趋势",
             )
-        if mode in {"all", "hotspots"}:
-            self._append_markdown_highlights(
+        if mode in {"all", "hotspots", "industry"}:
+            self._append_markdown_editorial_stories(
                 lines,
-                sections.get("viral_ai_news", []),
+                grouped.get("viral_ai_news", []),
                 "可能爆火的 AI 新闻",
             )
         if mode in {"all", "hotspots", "funding", "industry"}:
-            self._append_markdown_highlights(
+            self._append_markdown_editorial_stories(
                 lines,
-                sections.get("ai_funding", []),
+                grouped.get("ai_funding", []),
                 "AI 投融资与商业化",
             )
-        self._append_markdown_official_social(
+        self._append_markdown_editorial_stories(
             lines,
-            sections.get("official_social_updates", []),
+            grouped.get("official_social_updates", []),
+            "模型公司官方账号动态",
         )
-        self._append_markdown_highlights(
-            lines,
-            sections.get("must_read", []),
-            "今日必须看",
+        self._append_markdown_editorial_stories(
+            lines, grouped.get("ai_news", []), "AI 热点"
         )
-        self._append_markdown_x_topics(lines, sections.get("x_topics", []))
-        self._append_markdown_highlights(
-            lines,
-            sections.get("business_opportunities", []),
-            "B端/商业机会",
+        self._append_markdown_editorial_stories(
+            lines, grouped.get("web3_news", []), "Web3 热点"
         )
-        self._append_markdown_highlights(
-            lines,
-            sections.get("watchlist", []),
-            "持续跟踪",
+        self._append_markdown_editorial_stories(
+            lines, grouped.get("venture_news", []), "投资 & 经济"
         )
-        self._append_markdown_x_drafts(lines, sections.get("x_drafts", []))
-        general_ai_news = [
+        self._append_markdown_editorial_stories(
+            lines, grouped.get("github_projects", []), "GitHub 优质项目"
+        )
+
+        meaningful_changes = [
             item
-            for item in sections["ai_news"]
-            if item.get("signal_type") != "model_release"
+            for item in editorial_plan
+            if meta.get("history_enabled")
+            and int(item.get("repeat_count", 0) or 0) > 0
+            and (
+                item.get("history_status") == "持续升温"
+                or int(item.get("score_delta", 0) or 0) != 0
+            )
         ]
-        self._append_markdown_news(lines, "AI 热点", general_ai_news)
-        self._append_markdown_news(lines, "Web3 热点", sections["web3_news"])
-        self._append_markdown_news(lines, "投资 & 经济", sections["venture_news"])
-
-        lines.extend(["## GitHub 优质项目", ""])
-        if sections["github_projects"]:
-            for index, project in enumerate(sections["github_projects"], 1):
-                today = f" | 今日新增 {project['today_stars']}" if project.get("today_stars") else ""
-                lines.append(
-                    f"{index}. [{project['name']}]({project.get('url', '')})"
-                    f" - {project.get('language', 'Unknown')} | {project.get('stars', '0')} stars{today}"
+        self._append_markdown_reference_section(
+            lines,
+            "相比昨天的新变化",
+            meaningful_changes,
+            lambda item: " · ".join(
+                part
+                for part in (
+                    item.get("history_status", ""),
+                    (
+                        f"综合分变化 {int(item.get('score_delta', 0)):+d}"
+                        if int(item.get("score_delta", 0) or 0)
+                        else ""
+                    ),
                 )
-                if project.get("summary_cn"):
-                    lines.append(f"   {project['summary_cn']}")
-                meta_parts = []
-                if project.get("category"):
-                    meta_parts.append(project["category"])
-                if project.get("tags"):
-                    meta_parts.append(" / ".join(project["tags"]))
-                score_meta = self._dimension_meta(project)
-                if score_meta:
-                    meta_parts.append(score_meta)
-                if meta_parts:
-                    lines.append(f"   {' · '.join(meta_parts)}")
-                if project.get("rion_reason"):
-                    lines.append(f"   {project['rion_reason']}")
-                if project.get("description"):
-                    lines.append(f"   {project['description']}")
-        else:
-            lines.append("- 暂未抓到 GitHub Trending 内容。")
+                if part
+            ),
+        )
 
-        lines.extend(["", "## 今日选题素材", ""])
-        for index, topic in enumerate(sections["topics"], 1):
-            lines.append(f"{index}. {topic}")
+        if mode in {"all", "industry"}:
+            self._append_markdown_editorial_industry_chain(lines, editorial_plan)
+            self._append_markdown_editorial_connections(
+                lines,
+                sections.get("cross_layer_connections", []),
+                editorial_plan,
+            )
+
+        self._append_markdown_editorial_x_topics(
+            lines,
+            sections.get("x_topics", []),
+            editorial_plan,
+        )
+        business_items = [
+            item
+            for item in editorial_plan
+            if "business_opportunity" in item.get("secondary_angles", [])
+            and clean_text(item.get("editorial_hint", ""))
+            and clean_text(item.get("editorial_hint", ""))
+            != clean_text(item.get("summary", ""))
+        ]
+        self._append_markdown_reference_section(
+            lines,
+            "B端/商业机会",
+            business_items,
+            lambda item: " · ".join(
+                part
+                for part in (
+                    f"商业分 {item.get('business_score', 0)}",
+                    item.get("editorial_hint", ""),
+                )
+                if part
+            ),
+        )
+        self._append_markdown_reference_section(
+            lines,
+            "持续跟踪",
+            [
+                item
+                for item in editorial_plan
+                if "watchlist" in item.get("secondary_angles", [])
+            ],
+            lambda item: (
+                f"已连续出现 {int(item.get('repeat_count', 0)) + 1} 次 · "
+                f"{item.get('history_status', '持续信号')}"
+            ),
+        )
+        self._append_markdown_editorial_x_drafts(
+            lines,
+            sections.get("x_drafts", []),
+            editorial_plan,
+        )
+
+        sources = sorted(
+            {
+                clean_text(item.get("source", ""))
+                for item in editorial_plan
+                if clean_text(item.get("source", ""))
+            }
+        )
+        lines.extend(
+            [
+                "",
+                "## 来源明细",
+                "",
+                f"- 独立事件：{uniqueness.get('story_count', len(editorial_plan))} 条",
+                f"- 规范化主链接：{uniqueness.get('unique_link_count', 0)} 条",
+                f"- 重复新闻卡片：{uniqueness.get('duplicate_story_count', 0)} 条",
+                f"- 唯一链接率：{uniqueness.get('unique_link_ratio', 100)}%",
+                f"- 来源覆盖：{'、'.join(sources) if sources else '暂无'}",
+            ]
+        )
 
         lines.extend(
             [
@@ -5363,6 +5588,289 @@ class DailyBriefing:
             ]
         )
         return "\n".join(lines)
+
+    def _editorial_story_lookup(
+        self,
+        editorial_plan: List[Dict[str, Any]],
+    ) -> Dict[str, Dict[str, Any]]:
+        lookup: Dict[str, Dict[str, Any]] = {}
+        for item in editorial_plan:
+            for key in (
+                item.get("item_key", ""),
+                canonical_url(item.get("url", "")),
+                clean_text(item.get("title", "")).lower(),
+            ):
+                if key:
+                    lookup[key] = item
+        return lookup
+
+    def _story_for_reference(
+        self,
+        item: Dict[str, Any],
+        lookup: Dict[str, Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        for key in (
+            item.get("item_key", ""),
+            canonical_url(item.get("url", "")),
+            clean_text(item.get("title", item.get("source", ""))).lower(),
+        ):
+            if key and key in lookup:
+                return lookup[key]
+        return {}
+
+    def _append_markdown_editorial_stories(
+        self,
+        lines: List[str],
+        items: List[Dict[str, Any]],
+        title: str,
+    ) -> None:
+        if not items:
+            return
+        lines.extend([f"## {title}", ""])
+
+        for index, item in enumerate(items, 1):
+            story_title = item.get("title", "")
+            url = item.get("url", "")
+            title_text = f"[{story_title}]({url})" if url else story_title
+            lines.append(f"{index}. {title_text}")
+            what_happened = self._editorial_what_happened(item)
+            key_details = self._editorial_key_details(item)
+            why_it_matters = clean_text(
+                item.get("why_it_matters", "")
+                or item.get("editorial_hint", "")
+                or item.get("rion_reason", "")
+            )
+            if what_happened:
+                lines.extend(
+                    ["", f"    **发生了什么：** {what_happened}"]
+                )
+            if key_details:
+                lines.extend(["", f"    **关键细节：** {key_details}"])
+            if why_it_matters:
+                lines.extend(["", f"    **为什么重要：** {why_it_matters}"])
+            caveat = clean_text(item.get("caveat", ""))
+            if caveat:
+                lines.extend(["", f"    **待确认：** {caveat}"])
+            metadata_parts: List[str] = []
+            meta = " · ".join(
+                part
+                for part in (
+                    item.get("source", ""),
+                    item.get("event_type_label", ""),
+                    item.get("industry_layer_label", ""),
+                    item.get("verification", ""),
+                )
+                if part
+            )
+            if meta:
+                metadata_parts.append(meta)
+            score_meta = self._dimension_meta(item)
+            if score_meta:
+                metadata_parts.append(score_meta)
+            commercial_details = " · ".join(
+                part
+                for part in (
+                    item.get("funding_amount", ""),
+                    item.get("funding_round", ""),
+                    item.get("adoption_metric", ""),
+                )
+                if part
+            )
+            if commercial_details:
+                metadata_parts.append(commercial_details)
+            if metadata_parts:
+                lines.extend(
+                    ["", f"    **来源与评分：** {' · '.join(metadata_parts)}"]
+                )
+            lines.append("")
+        lines.append("")
+
+    def _editorial_what_happened(self, item: Dict[str, Any]) -> str:
+        prepared = clean_text(item.get("what_happened", ""))
+        if prepared:
+            return prepared
+        summary = clean_text(item.get("summary", ""))
+        raw_summary = clean_text(item.get("raw_summary", ""))
+        if (
+            summary
+            and raw_summary
+            and re.sub(r"\s+", " ", summary).lower()
+            == re.sub(r"\s+", " ", raw_summary).lower()
+        ):
+            source = clean_text(item.get("source", "来源方"))
+            title = clean_text(item.get("title", "这项更新"))
+            event_type = clean_text(item.get("event_type_label", "公开更新"))
+            return f"{source} 公开了 {title}，当前归类为{event_type}。"
+        return summary
+
+    def _editorial_key_details(self, item: Dict[str, Any]) -> str:
+        prepared = clean_text(item.get("key_details", ""))
+        if prepared:
+            return prepared
+
+        raw_summary = clean_text(item.get("raw_summary", ""))
+        summary = clean_text(
+            item.get("what_happened", "") or item.get("summary", "")
+        )
+        normalized_raw = re.sub(r"\s+", " ", raw_summary).lower()
+        normalized_summary = re.sub(r"\s+", " ", summary).lower()
+        if raw_summary and normalized_raw != normalized_summary:
+            return short_title(raw_summary, 360)
+        if summary:
+            return summary
+
+        facts = [
+            clean_text(value)
+            for value in (
+                item.get("model_id", ""),
+                item.get("release_kind", ""),
+                item.get("funding_amount", ""),
+                item.get("funding_round", ""),
+                item.get("adoption_metric", ""),
+            )
+            if clean_text(value)
+        ]
+        if facts:
+            return "来源明确披露的信息包括：" + "；".join(facts) + "。"
+        return ""
+
+    def _append_markdown_reference_section(
+        self,
+        lines: List[str],
+        title: str,
+        items: List[Dict[str, Any]],
+        detail_builder: Any,
+    ) -> None:
+        rendered = [
+            (item, clean_text(detail_builder(item)))
+            for item in items
+            if clean_text(detail_builder(item))
+        ]
+        if not rendered:
+            return
+        lines.extend([f"## {title}", ""])
+        for item, detail in rendered:
+            lines.append(f"- **{item.get('title', '')}**：{detail}")
+        lines.append("")
+
+    def _append_markdown_editorial_industry_chain(
+        self,
+        lines: List[str],
+        editorial_plan: List[Dict[str, Any]],
+    ) -> None:
+        labels = (
+            ("upstream", "上游｜算力、芯片与基础设施"),
+            ("midstream", "中游｜模型、平台与开发生态"),
+            ("downstream", "下游｜应用、工具与行业落地"),
+        )
+        summaries: List[str] = []
+        for layer, label in labels:
+            items = [
+                item
+                for item in editorial_plan
+                if item.get("industry_layer") == layer
+                and item.get("section_key") != "web3"
+            ]
+            if not items:
+                continue
+            event_counts: Dict[str, int] = {}
+            for item in items:
+                event_label = item.get("event_type_label", "行业动态")
+                event_counts[event_label] = event_counts.get(event_label, 0) + 1
+            event_summary = "、".join(
+                f"{event_label} {count} 条"
+                for event_label, count in sorted(
+                    event_counts.items(), key=lambda pair: (-pair[1], pair[0])
+                )
+            )
+            summaries.append(
+                f"**{label}：** {len(items)} 个独立事件，主要包括 {event_summary}。"
+            )
+        if not summaries:
+            return
+        lines.extend(["## AI 产业链概览", "", *summaries, ""])
+
+    def _append_markdown_editorial_connections(
+        self,
+        lines: List[str],
+        connections: List[Dict[str, Any]],
+        editorial_plan: List[Dict[str, Any]],
+    ) -> None:
+        lookup = self._editorial_story_lookup(editorial_plan)
+        rendered: List[str] = []
+        seen_insights: set[tuple[str, str, str]] = set()
+        for connection in connections:
+            left = self._story_for_reference(
+                connection.get("from", {}), lookup
+            )
+            right = self._story_for_reference(
+                connection.get("to", {}), lookup
+            )
+            if not left or not right:
+                continue
+            shared = " / ".join(connection.get("shared_signals", []))
+            if not shared:
+                continue
+            left_layer = left.get("industry_layer_label", "上游信号")
+            right_layer = right.get("industry_layer_label", "下游信号")
+            insight_key = (shared, left_layer, right_layer)
+            if insight_key in seen_insights:
+                continue
+            seen_insights.add(insight_key)
+            rendered.append(
+                f"**{shared}：** {left_layer}、{right_layer}同时出现相关变化，"
+                "可作为跨层趋势继续观察；当前证据不代表企业之间存在直接合作或因果关系。"
+            )
+        if not rendered:
+            return
+        lines.extend(["## 产业链联动", "", *rendered, ""])
+
+    def _append_markdown_editorial_x_topics(
+        self,
+        lines: List[str],
+        x_topics: List[Dict[str, str]],
+        editorial_plan: List[Dict[str, Any]],
+    ) -> None:
+        lookup = self._editorial_story_lookup(editorial_plan)
+        rendered: List[tuple[Dict[str, str], Dict[str, Any]]] = []
+        for topic in x_topics:
+            story = self._story_for_reference(topic, lookup)
+            if not story:
+                continue
+            rendered.append((topic, story))
+        if not rendered:
+            return
+        lines.extend(["## 适合发 X 的选题", ""])
+        for index, (topic, story) in enumerate(rendered, 1):
+            lines.append(
+                f"{index}. **{story.get('title', '')}** · 形式：{topic.get('format', '')}"
+            )
+            lines.append(f"   角度：{topic.get('angle', '')}")
+            if topic.get("tags"):
+                lines.append(f"   标签：{topic['tags']}")
+        lines.append("")
+
+    def _append_markdown_editorial_x_drafts(
+        self,
+        lines: List[str],
+        x_drafts: List[Dict[str, Any]],
+        editorial_plan: List[Dict[str, Any]],
+    ) -> None:
+        lookup = self._editorial_story_lookup(editorial_plan)
+        rendered: List[tuple[Dict[str, Any], Dict[str, Any]]] = []
+        for draft in x_drafts:
+            story = self._story_for_reference(draft, lookup)
+            if not story:
+                continue
+            rendered.append((draft, story))
+        if not rendered:
+            return
+        lines.extend(["## X 草稿", ""])
+        for index, (draft, story) in enumerate(rendered, 1):
+            lines.append(
+                f"### {index}. {story.get('title', '')} · {draft.get('format', '')}"
+            )
+            lines.extend(["", "```text", draft.get("body", ""), "```", ""])
 
     def _append_markdown_industry_chain(
         self,

@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup, Tag
 SECTION_KINDS = {
     "相比昨天的新变化": "change",
     "AI 产业链全景": "industry",
+    "AI 产业链概览": "industry",
     "产业链联动": "industry",
     "最新模型发布": "model",
     "最新模型发布与更新": "model",
@@ -156,6 +157,7 @@ def _prepare_content(markdown_text: str) -> tuple[str, list[dict[str, str]], dic
         intro.decompose()
 
     card_count = 0
+    story_count = 0
     for section in container.select(".briefing-section"):
         section_text = section.get_text(" ", strip=True)
         section["data-confidence"] = _confidence(section_text)
@@ -169,6 +171,38 @@ def _prepare_content(markdown_text: str) -> tuple[str, list[dict[str, str]], dic
             item["data-confidence"] = _confidence(text)
             item["data-layer"] = _layer(text)
             item["data-search"] = text.lower()
+            if item.select_one("a.source-link[href]"):
+                story_count += 1
+                item["class"] = list(item.get("class", [])) + ["story-card"]
+                story_roles = {
+                    "发生了什么：": "story-what",
+                    "关键细节：": "story-details",
+                    "为什么重要：": "story-impact",
+                    "待确认：": "story-caveat",
+                    "来源与评分：": "story-meta-line",
+                }
+                for paragraph in item.find_all("p", recursive=False):
+                    strong = paragraph.find("strong", recursive=False)
+                    if strong is None:
+                        continue
+                    label = strong.get_text(" ", strip=True)
+                    role = story_roles.get(label)
+                    if not role:
+                        continue
+                    paragraph["class"] = list(paragraph.get("class", [])) + [
+                        "story-block",
+                        role,
+                    ]
+                    if role != "story-meta-line":
+                        continue
+                    details = source.new_tag(
+                        "details", attrs={"class": "story-metadata"}
+                    )
+                    summary = source.new_tag("summary")
+                    summary.string = "来源与评分"
+                    paragraph.replace_with(details)
+                    details.append(summary)
+                    details.append(paragraph)
 
     for code_block in container.select("pre"):
         code_block["class"] = list(code_block.get("class", [])) + ["copyable-code"]
@@ -181,6 +215,7 @@ def _prepare_content(markdown_text: str) -> tuple[str, list[dict[str, str]], dic
     metrics = {
         "sections": len(nav),
         "cards": card_count,
+        "stories": story_count,
         "sources": len(external_urls),
         "official": markdown_text.count("官方确认"),
     }
@@ -401,6 +436,16 @@ def render_markdown_html(
     .briefing-card > :first-child {{ margin-top: 0; }}
     .briefing-card > :last-child {{ margin-bottom: 0; }}
     .briefing-card a:first-of-type {{ font-weight: 720; }}
+    .story-card > p:first-child {{ margin-bottom: 15px; font-size: 17px; line-height: 1.45; }}
+    .story-block {{ margin: 11px 0; color: var(--ink); }}
+    .story-block > strong {{ color: var(--accent-strong); font-size: 13px; letter-spacing: 0.02em; }}
+    .story-details {{ padding: 12px 14px; border-left: 3px solid var(--accent); background: var(--surface-soft); }}
+    .story-impact {{ padding-bottom: 2px; }}
+    .story-caveat {{ color: var(--warning); }}
+    .story-metadata {{ margin-top: 14px; color: var(--muted); font-size: 13px; }}
+    .story-metadata summary {{ width: max-content; cursor: pointer; color: var(--muted); font-weight: 650; }}
+    .story-metadata .story-meta-line {{ margin: 8px 0 0; }}
+    .story-metadata .story-meta-line > strong {{ display: none; }}
     .save-card {{
       position: absolute;
       top: 12px;
@@ -491,7 +536,7 @@ def render_markdown_html(
       </div>
       <div class="metric-grid" aria-label="简报统计">
         <div class="metric"><strong>{metrics["sections"]}</strong><span>栏目</span></div>
-        <div class="metric"><strong>{metrics["cards"]}</strong><span>条目</span></div>
+        <div class="metric"><strong>{metrics["stories"]}</strong><span>独立新闻</span></div>
         <div class="metric"><strong>{metrics["sources"]}</strong><span>外部来源</span></div>
         <div class="metric"><strong>{reading_minutes}</strong><span>分钟阅读</span></div>
       </div>
@@ -536,7 +581,7 @@ def render_markdown_html(
       const filterStatus = document.getElementById('filter-status');
       const emptyState = document.getElementById('empty-state');
       const cards = [...document.querySelectorAll('.briefing-card')];
-      const sections = [...document.querySelectorAll('.briefing-section')];
+      const sections = [...document.querySelectorAll('.briefing-section:not(.briefing-intro)')];
       const storageKey = 'daily-briefing:saved:' + location.pathname;
       const readSaved = () => {{
         try {{ return JSON.parse(localStorage.getItem(storageKey) || '[]'); }}
@@ -606,7 +651,7 @@ def render_markdown_html(
         const confidenceValue = confidence.value;
         const layerValue = layer.value;
         const savedOnly = savedFilter.getAttribute('aria-pressed') === 'true';
-        let visibleCards = 0;
+        let visibleStories = 0;
         let visibleSections = 0;
 
         sections.forEach((section) => {{
@@ -621,7 +666,10 @@ def render_markdown_html(
             const savedMatch = !savedOnly || saved.has(card.dataset.cardId);
             const show = queryMatch && confidenceMatch && layerMatch && savedMatch;
             card.hidden = !show;
-            if (show) {{ sectionCardMatches += 1; visibleCards += 1; }}
+            if (show) {{
+              sectionCardMatches += 1;
+              if (card.classList.contains('story-card')) visibleStories += 1;
+            }}
           }});
 
           const filtersAreOpen = confidenceValue === 'all' && layerValue === 'all' && !savedOnly;
@@ -638,7 +686,7 @@ def render_markdown_html(
         }});
 
         emptyState.classList.toggle('visible', visibleSections === 0);
-        filterStatus.textContent = `显示 ${{visibleSections}} 个栏目 / ${{visibleCards}} 条卡片`;
+        filterStatus.textContent = `显示 ${{visibleSections}} 个栏目 / ${{visibleStories}} 条独立新闻`;
       }}
 
       search.addEventListener('input', applyFilters);
