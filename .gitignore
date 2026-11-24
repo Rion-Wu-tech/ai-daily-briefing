@@ -48,3 +48,11 @@ data/*.sqlite3-*
 
 # Logs
 *.log
+
+# Personal agent workspace (keep local)
+/USER.md
+/MEMORY.md
+/IDENTITY.md
+/SOUL.md
+/memory/
+.skill-sync/
